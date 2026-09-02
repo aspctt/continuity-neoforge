@@ -1,91 +1,194 @@
 package me.pepperbell.continuity.client.model;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.jetbrains.annotations.Nullable;
+
 import me.pepperbell.continuity.api.client.QuadProcessor;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
-import me.pepperbell.continuity.client.util.RenderUtil;
+import me.pepperbell.continuity.client.render.MutableQuad;
+import me.pepperbell.continuity.client.render.QuadCollection;
+import me.pepperbell.continuity.client.render.QuadCollector;
 import me.pepperbell.continuity.impl.client.ProcessingContextImpl;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 
-public class CtmBakedModel extends ForwardingBakedModel {
+/**
+ * Applies connected textures to a block model.
+ *
+ * <p>All of the work happens in {@link #getModelData}, which NeoForge calls once per block per chunk rebuild with the
+ * level and position in hand. The resulting quads are stashed on the model data, and the later {@code getRenderTypes}
+ * and {@code getQuads} calls just read them back. Doing it this way means no thread local has to be smuggled past
+ * {@code getQuads}, and it works under any chunk renderer that honours the NeoForge model pipeline.
+ */
+public class CtmBakedModel extends BakedModelWrapper<BakedModel> {
 	public static final int PASSES = 4;
 
+	/**
+	 * Where the processed quads for one block are handed from {@link #getModelData} to {@link #getQuads}.
+	 */
+	public static final ModelProperty<QuadCollection> PROCESSED_QUADS = new ModelProperty<>();
+
+	private static final Direction[] DIRECTIONS = Direction.values();
+
 	protected final BlockState defaultState;
-	protected volatile Function<Sprite, QuadProcessors.Slice> defaultSliceFunc;
+	protected volatile Function<TextureAtlasSprite, QuadProcessors.Slice> defaultSliceFunc;
 
 	public CtmBakedModel(BakedModel wrapped, BlockState defaultState) {
-		this.wrapped = wrapped;
+		super(wrapped);
 		this.defaultState = defaultState;
 	}
 
 	@Override
-	public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+	public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
+		ModelData data = super.getModelData(level, pos, state, modelData);
+
 		if (!ContinuityConfig.INSTANCE.connectedTextures.get()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			return data;
 		}
 
 		ModelObjectsContainer container = ModelObjectsContainer.get();
 		if (!container.featureStates.getConnectedTexturesState().isEnabled()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			return data;
 		}
 
 		CtmQuadTransform quadTransform = container.ctmQuadTransform;
 		if (quadTransform.isActive()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			// A wrapped model asked us to build its data while we were already building ours. Leave it to the
+			// outer call.
+			return data;
 		}
 
-		// The correct way to get the appearance of the origin state from within a block model is to (1) call
-		// getAppearance on the result of blockView.getBlockState(pos) instead of the passed state and (2) pass the
-		// pos and world state of the adjacent block as the source pos and source state.
-		// (1) is not followed here because at this point in execution, within this call to
-		// CtmBakedModel#emitBlockQuads, the state parameter must already contain the world state. Even if this
-		// CtmBakedModel is wrapped, then the wrapper must pass the same state as it received because not doing so can
-		// cause crashes when the wrapped model is a vanilla multipart model or delegates to one. Thus, getting the
-		// world state again is inefficient and unnecessary.
-		// (2) is not possible here because the appearance state is necessary to get the slice and only the processors
-		// within the slice actually perform checks on adjacent blocks. Likewise, the processors themselves cannot
-		// retrieve the appearance state since the correct processors can only be chosen with the initially correct
-		// appearance state.
-		// Additionally, the side is chosen to always be the first constant of the enum (DOWN) for simplicity. Querying
-		// the appearance for all six sides would be more correct, but less efficient. This may be fixed in the future,
-		// especially if there is an actual use case for it.
-		BlockState appearanceState = state.getAppearance(blockView, pos, Direction.DOWN, state, pos);
+		// The correct way to get the appearance of the origin state is to call getAppearance on the state actually in
+		// the world, passing the adjacent block as the source. Only the first constant of the enum is queried: asking
+		// for all six sides would be more correct but costs six lookups per block, and the appearance state has to be
+		// resolved before a slice can be chosen because the slice decides which processors run at all.
+		BlockState appearanceState = state.getAppearance(level, pos, Direction.DOWN, state, pos);
 
-		quadTransform.prepare(blockView, appearanceState, state, pos, randomSupplier, context, ContinuityConfig.INSTANCE.useManualCulling.get(), getSliceFunc(appearanceState));
+		QuadCollection processed = process(level, pos, state, appearanceState, data, container, quadTransform);
+		if (processed == null) {
+			return data;
+		}
+		return data.derive().with(PROCESSED_QUADS, processed).build();
+	}
 
-		context.pushTransform(quadTransform);
-		super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-		context.popTransform();
+	@Nullable
+	private QuadCollection process(BlockAndTintGetter level, BlockPos pos, BlockState state, BlockState appearanceState, ModelData data, ModelObjectsContainer container, CtmQuadTransform quadTransform) {
+		Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc = getSliceFunc(appearanceState);
 
-		quadTransform.processingContext.outputTo(context.getEmitter());
-		quadTransform.reset();
+		RandomSource random = RandomSource.create();
+		long seed = state.getSeed(pos);
+		Supplier<RandomSource> randomSupplier = () -> {
+			random.setSeed(seed);
+			return random;
+		};
+
+		random.setSeed(seed);
+		ChunkRenderTypeSet baseRenderTypes = originalModel.getRenderTypes(state, random, data);
+		if (baseRenderTypes.isEmpty()) {
+			return null;
+		}
+
+		boolean useManualCulling = ContinuityConfig.INSTANCE.useManualCulling.get();
+		QuadCollector collector = container.ctmQuadCollector;
+		MutableQuad workingQuad = container.workingQuad;
+		collector.reset();
+
+		quadTransform.prepare(level, appearanceState, state, pos, randomSupplier, useManualCulling, sliceFunc);
+
+		boolean processedAnything = false;
+		try {
+			BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
+
+			for (RenderType renderType : baseRenderTypes) {
+				collector.prepare(renderType);
+
+				for (int i = 0; i <= DIRECTIONS.length; i++) {
+					Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
+
+					if (useManualCulling && cullFace != null) {
+						neighborPos.setWithOffset(pos, cullFace);
+						if (!Block.shouldRenderFace(state, level, pos, cullFace, neighborPos)) {
+							continue;
+						}
+					}
+
+					random.setSeed(seed);
+					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, renderType);
+					int amount = quads.size();
+					for (int j = 0; j < amount; j++) {
+						BakedQuad quad = quads.get(j);
+						workingQuad.fromVanilla(quad, cullFace);
+
+						if (quadTransform.transform(workingQuad)) {
+							if (workingQuad.isDirty()) {
+								collector.acceptVanilla(workingQuad.toBakedQuad(), workingQuad.cullFace(), renderType);
+								processedAnything = true;
+							} else {
+								collector.acceptVanilla(quad, cullFace, renderType);
+							}
+						} else {
+							processedAnything = true;
+						}
+					}
+				}
+			}
+
+			// Overlays and any other geometry the processors added go out in the layer the block itself uses, unless
+			// they asked for a specific one.
+			collector.prepare(ItemBlockRenderTypes.getChunkRenderType(state));
+			quadTransform.processingContext.outputTo(collector);
+			processedAnything |= quadTransform.processingContext.producedQuads();
+		} finally {
+			quadTransform.reset();
+		}
+
+		if (!processedAnything) {
+			// Nothing changed, so let the wrapped model answer getQuads directly and skip the copies entirely.
+			// Manual culling has already paid off by this point: it kept the processors off faces that are hidden.
+			collector.reset();
+			return null;
+		}
+
+		return collector.build();
 	}
 
 	@Override
-	public boolean isVanillaAdapter() {
-		if (!ContinuityConfig.INSTANCE.connectedTextures.get()) {
-			return super.isVanillaAdapter();
+	public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
+		QuadCollection processed = data.get(PROCESSED_QUADS);
+		if (processed != null) {
+			return processed.getRenderTypes();
 		}
-		return false;
+		return super.getRenderTypes(state, rand, data);
 	}
 
-	protected Function<Sprite, QuadProcessors.Slice> getSliceFunc(BlockState state) {
+	@Override
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType renderType) {
+		QuadCollection processed = data.get(PROCESSED_QUADS);
+		if (processed != null) {
+			return processed.getQuads(side, renderType);
+		}
+		return super.getQuads(state, side, rand, data, renderType);
+	}
+
+	protected Function<TextureAtlasSprite, QuadProcessors.Slice> getSliceFunc(BlockState state) {
 		if (state == defaultState) {
-			Function<Sprite, QuadProcessors.Slice> sliceFunc = defaultSliceFunc;
+			Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc = defaultSliceFunc;
 			if (sliceFunc == null) {
 				synchronized (this) {
 					sliceFunc = defaultSliceFunc;
@@ -100,26 +203,26 @@ public class CtmBakedModel extends ForwardingBakedModel {
 		return QuadProcessors.getCache(state);
 	}
 
-	protected static class CtmQuadTransform implements RenderContext.QuadTransform {
+	/**
+	 * Runs the processor chain over one quad at a time.
+	 */
+	protected static class CtmQuadTransform {
 		protected final ProcessingContextImpl processingContext = new ProcessingContextImpl();
 
-		protected BlockRenderView blockView;
+		protected BlockAndTintGetter blockView;
 		protected BlockState appearanceState;
 		protected BlockState state;
 		protected BlockPos pos;
-		protected Supplier<Random> randomSupplier;
-		protected RenderContext renderContext;
+		protected Supplier<RandomSource> randomSupplier;
 		protected boolean useManualCulling;
-		protected Function<Sprite, QuadProcessors.Slice> sliceFunc;
+		protected Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc;
 
 		protected boolean active;
 
-		@Override
-		public boolean transform(MutableQuadView quad) {
-			if (useManualCulling && renderContext.isFaceCulled(quad.cullFace())) {
-				return false;
-			}
-
+		/**
+		 * {@return false if the quad should be dropped}
+		 */
+		public boolean transform(MutableQuad quad) {
 			for (int pass = 0; pass < PASSES; pass++) {
 				Boolean result = transformOnce(quad, pass);
 				if (result != null) {
@@ -130,8 +233,13 @@ public class CtmBakedModel extends ForwardingBakedModel {
 			return true;
 		}
 
-		protected Boolean transformOnce(MutableQuadView quad, int pass) {
-			Sprite sprite = RenderUtil.getSpriteFinder().find(quad);
+		@Nullable
+		protected Boolean transformOnce(MutableQuad quad, int pass) {
+			TextureAtlasSprite sprite = quad.sprite();
+			if (sprite == null) {
+				return true;
+			}
+
 			QuadProcessors.Slice slice = sliceFunc.apply(sprite);
 			QuadProcessor[] processors = pass == 0 ? slice.processors() : slice.multipassProcessors();
 			for (QuadProcessor processor : processors) {
@@ -156,13 +264,12 @@ public class CtmBakedModel extends ForwardingBakedModel {
 			return active;
 		}
 
-		public void prepare(BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext renderContext, boolean useManualCulling, Function<Sprite, QuadProcessors.Slice> sliceFunc) {
+		public void prepare(BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, boolean useManualCulling, Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc) {
 			this.blockView = blockView;
 			this.appearanceState = appearanceState;
 			this.state = state;
 			this.pos = pos;
 			this.randomSupplier = randomSupplier;
-			this.renderContext = renderContext;
 			this.useManualCulling = useManualCulling;
 			this.sliceFunc = sliceFunc;
 
@@ -177,7 +284,6 @@ public class CtmBakedModel extends ForwardingBakedModel {
 			state = null;
 			pos = null;
 			randomSupplier = null;
-			renderContext = null;
 			useManualCulling = false;
 			sliceFunc = null;
 

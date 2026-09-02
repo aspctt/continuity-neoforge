@@ -1,41 +1,59 @@
 package me.pepperbell.continuity.client.model;
 
-import java.util.function.Supplier;
+import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.pepperbell.continuity.api.client.EmissiveSpriteApi;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
+import me.pepperbell.continuity.client.render.BlendMode;
+import me.pepperbell.continuity.client.render.MaterialFinder;
+import me.pepperbell.continuity.client.render.MutableQuad;
+import me.pepperbell.continuity.client.render.QuadCollection;
+import me.pepperbell.continuity.client.render.QuadCollector;
+import me.pepperbell.continuity.client.render.RenderMaterial;
 import me.pepperbell.continuity.client.util.QuadUtil;
-import me.pepperbell.continuity.client.util.RenderUtil;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.common.util.TriState;
 
-public class EmissiveBakedModel extends ForwardingBakedModel {
+/**
+ * Adds a full-bright copy of any quad whose texture has an emissive counterpart.
+ *
+ * <p>NeoForge carries no per-quad light override, so the copies are emitted as {@code EmissiveBakedQuad} and the light
+ * value is forced when they reach the renderer.
+ */
+public class EmissiveBakedModel extends BakedModelWrapper<BakedModel> {
+	/**
+	 * Where the block quads for one position, emissive copies included, are handed to {@link #getQuads}.
+	 */
+	public static final ModelProperty<QuadCollection> EMISSIVE_QUADS = new ModelProperty<>();
+
 	protected static final RenderMaterial[] EMISSIVE_MATERIALS;
 	protected static final RenderMaterial DEFAULT_EMISSIVE_MATERIAL;
 	protected static final RenderMaterial CUTOUT_MIPPED_EMISSIVE_MATERIAL;
 
+	private static final Direction[] DIRECTIONS = Direction.values();
+
 	static {
-		BlendMode[] blendModes = BlendMode.values();
+		BlendMode[] blendModes = BlendMode.VALUES;
 		EMISSIVE_MATERIALS = new RenderMaterial[blendModes.length];
-		MaterialFinder finder = RenderUtil.getMaterialFinder();
 		for (BlendMode blendMode : blendModes) {
-			EMISSIVE_MATERIALS[blendMode.ordinal()] = finder.emissive(true).disableDiffuse(true).ambientOcclusion(TriState.FALSE).blendMode(blendMode).find();
+			EMISSIVE_MATERIALS[blendMode.ordinal()] = MaterialFinder.find(blendMode, true, true, TriState.FALSE);
 		}
 
 		DEFAULT_EMISSIVE_MATERIAL = EMISSIVE_MATERIALS[BlendMode.DEFAULT.ordinal()];
@@ -43,130 +61,199 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 	}
 
 	public EmissiveBakedModel(BakedModel wrapped) {
-		this.wrapped = wrapped;
+		super(wrapped);
 	}
 
 	@Override
-	public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+	public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
+		ModelData data = super.getModelData(level, pos, state, modelData);
+
 		if (!ContinuityConfig.INSTANCE.emissiveTextures.get()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			return data;
 		}
 
 		ModelObjectsContainer container = ModelObjectsContainer.get();
 		if (!container.featureStates.getEmissiveTexturesState().isEnabled()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			return data;
 		}
 
 		EmissiveBlockQuadTransform quadTransform = container.emissiveBlockQuadTransform;
 		if (quadTransform.isActive()) {
-			super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-			return;
+			return data;
 		}
 
-		MeshBuilder meshBuilder = container.meshBuilder;
-		quadTransform.prepare(meshBuilder.getEmitter(), blockView, state, pos, context, ContinuityConfig.INSTANCE.useManualCulling.get());
-
-		context.pushTransform(quadTransform);
-		super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-		context.popTransform();
-
-		if (quadTransform.didEmit()) {
-			meshBuilder.build().outputTo(context.getEmitter());
+		QuadCollection processed = process(state, data, container, quadTransform);
+		if (processed == null) {
+			return data;
 		}
-		quadTransform.reset();
+		return data.derive().with(EMISSIVE_QUADS, processed).build();
+	}
+
+	@Nullable
+	private QuadCollection process(BlockState state, ModelData data, ModelObjectsContainer container, EmissiveBlockQuadTransform quadTransform) {
+		RandomSource random = RandomSource.create();
+
+		ChunkRenderTypeSet baseRenderTypes = originalModel.getRenderTypes(state, random, data);
+		if (baseRenderTypes.isEmpty()) {
+			return null;
+		}
+
+		QuadCollector collector = container.emissiveQuadCollector;
+		MutableQuad workingQuad = container.emissiveWorkingQuad;
+		collector.reset();
+
+		quadTransform.prepare(collector, state);
+
+		try {
+			for (RenderType renderType : baseRenderTypes) {
+				collector.prepare(renderType);
+
+				for (int i = 0; i <= DIRECTIONS.length; i++) {
+					Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
+
+					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, renderType);
+					int amount = quads.size();
+					for (int j = 0; j < amount; j++) {
+						BakedQuad quad = quads.get(j);
+						collector.acceptVanilla(quad, cullFace, renderType);
+
+						workingQuad.fromVanilla(quad, cullFace);
+						quadTransform.transform(workingQuad, renderType);
+					}
+				}
+			}
+		} finally {
+			quadTransform.reset();
+		}
+
+		if (!quadTransform.didEmit()) {
+			collector.reset();
+			return null;
+		}
+
+		return collector.build();
 	}
 
 	@Override
-	public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-		if (!ContinuityConfig.INSTANCE.emissiveTextures.get()) {
-			super.emitItemQuads(stack, randomSupplier, context);
-			return;
+	public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
+		QuadCollection processed = data.get(EMISSIVE_QUADS);
+		if (processed != null) {
+			return processed.getRenderTypes();
+		}
+		return super.getRenderTypes(state, rand, data);
+	}
+
+	@Override
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType renderType) {
+		QuadCollection processed = data.get(EMISSIVE_QUADS);
+		if (processed != null) {
+			return processed.getQuads(side, renderType);
+		}
+		return super.getQuads(state, side, rand, data, renderType);
+	}
+
+	/**
+	 * Item rendering has no model data to hang results on, so the emissive copies are appended here instead. Items are
+	 * drawn one at a time rather than batched into a chunk, so the cost of doing it per call is acceptable.
+	 */
+	@Override
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
+		List<BakedQuad> quads = super.getQuads(state, side, rand);
+
+		if (state != null || quads.isEmpty() || !ContinuityConfig.INSTANCE.emissiveTextures.get()) {
+			return quads;
 		}
 
 		ModelObjectsContainer container = ModelObjectsContainer.get();
 		if (!container.featureStates.getEmissiveTexturesState().isEnabled()) {
-			super.emitItemQuads(stack, randomSupplier, context);
-			return;
+			return quads;
 		}
 
 		EmissiveItemQuadTransform quadTransform = container.emissiveItemQuadTransform;
 		if (quadTransform.isActive()) {
-			super.emitItemQuads(stack, randomSupplier, context);
-			return;
+			return quads;
 		}
 
-		MeshBuilder meshBuilder = container.meshBuilder;
-		quadTransform.prepare(meshBuilder.getEmitter());
+		MutableQuad workingQuad = container.emissiveWorkingQuad;
+		List<BakedQuad> emissiveQuads = null;
 
-		context.pushTransform(quadTransform);
-		super.emitItemQuads(stack, randomSupplier, context);
-		context.popTransform();
-
-		if (quadTransform.didEmit()) {
-			meshBuilder.build().outputTo(context.getEmitter());
+		quadTransform.prepare();
+		try {
+			int amount = quads.size();
+			for (int i = 0; i < amount; i++) {
+				BakedQuad quad = quads.get(i);
+				workingQuad.fromVanilla(quad, side);
+				BakedQuad emissiveQuad = quadTransform.transform(workingQuad);
+				if (emissiveQuad != null) {
+					if (emissiveQuads == null) {
+						emissiveQuads = new ObjectArrayList<>(quads);
+					}
+					emissiveQuads.add(emissiveQuad);
+				}
+			}
+		} finally {
+			quadTransform.reset();
 		}
-		quadTransform.reset();
+
+		return emissiveQuads == null ? quads : emissiveQuads;
 	}
 
-	@Override
-	public boolean isVanillaAdapter() {
-		if (!ContinuityConfig.INSTANCE.emissiveTextures.get()) {
-			return super.isVanillaAdapter();
+	@Nullable
+	private static TextureAtlasSprite getEmissiveSprite(MutableQuad quad) {
+		TextureAtlasSprite sprite = quad.sprite();
+		if (sprite == null) {
+			return null;
 		}
-		return false;
+		return EmissiveSpriteApi.get().getEmissiveSprite(sprite);
 	}
 
-	protected static class EmissiveBlockQuadTransform implements RenderContext.QuadTransform {
-		protected QuadEmitter emitter;
-		protected BlockRenderView blockView;
+	/**
+	 * Emits a full-bright copy of every block quad whose texture has an emissive counterpart.
+	 */
+	public static class EmissiveBlockQuadTransform {
+		protected QuadCollector collector;
 		protected BlockState state;
-		protected BlockPos pos;
-		protected RenderContext renderContext;
-		protected boolean useManualCulling;
 
 		protected boolean active;
 		protected boolean didEmit;
 		protected boolean calculateDefaultLayer;
 		protected boolean isDefaultLayerSolid;
 
-		@Override
-		public boolean transform(MutableQuadView quad) {
-			if (useManualCulling && renderContext.isFaceCulled(quad.cullFace())) {
-				return false;
+		public void transform(MutableQuad quad, RenderType renderType) {
+			TextureAtlasSprite sprite = quad.sprite();
+			TextureAtlasSprite emissiveSprite = getEmissiveSprite(quad);
+			if (emissiveSprite == null) {
+				return;
 			}
 
-			Sprite sprite = RenderUtil.getSpriteFinder().find(quad);
-			Sprite emissiveSprite = EmissiveSpriteApi.get().getEmissiveSprite(sprite);
-			if (emissiveSprite != null) {
-				emitter.copyFrom(quad);
-
-				BlendMode blendMode = quad.material().blendMode();
-				RenderMaterial emissiveMaterial;
-				if (blendMode == BlendMode.DEFAULT) {
-					if (calculateDefaultLayer) {
-						isDefaultLayerSolid = RenderLayers.getBlockLayer(state) == RenderLayer.getSolid();
-						calculateDefaultLayer = false;
-					}
-
-					if (isDefaultLayerSolid) {
-						emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;
-					} else {
-						emissiveMaterial = DEFAULT_EMISSIVE_MATERIAL;
-					}
-				} else if (blendMode == BlendMode.SOLID) {
-					emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;
-				} else {
-					emissiveMaterial = EMISSIVE_MATERIALS[blendMode.ordinal()];
+			// An emissive layer drawn over a solid one has to be at least cutout, or the alpha in the emissive
+			// texture is ignored and the whole face lights up.
+			BlendMode blendMode = BlendMode.fromRenderType(renderType);
+			RenderMaterial emissiveMaterial;
+			if (blendMode == BlendMode.DEFAULT) {
+				if (calculateDefaultLayer) {
+					isDefaultLayerSolid = ItemBlockRenderTypes.getChunkRenderType(state) == RenderType.solid();
+					calculateDefaultLayer = false;
 				}
 
-				emitter.material(emissiveMaterial);
-				QuadUtil.interpolate(emitter, sprite, emissiveSprite);
-				emitter.emit();
-				didEmit = true;
+				if (isDefaultLayerSolid) {
+					emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;
+				} else {
+					emissiveMaterial = DEFAULT_EMISSIVE_MATERIAL;
+				}
+			} else if (blendMode == BlendMode.SOLID) {
+				emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;
+			} else {
+				emissiveMaterial = EMISSIVE_MATERIALS[blendMode.ordinal()];
 			}
-			return true;
+
+			quad.material(emissiveMaterial);
+			QuadUtil.interpolate(quad, sprite, emissiveSprite);
+			quad.sprite(emissiveSprite);
+
+			collector.copyFrom(quad);
+			collector.emit();
+			didEmit = true;
 		}
 
 		public boolean isActive() {
@@ -177,13 +264,9 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 			return didEmit;
 		}
 
-		public void prepare(QuadEmitter emitter, BlockRenderView blockView, BlockState state, BlockPos pos, RenderContext renderContext, boolean useManualCulling) {
-			this.emitter = emitter;
-			this.blockView = blockView;
+		public void prepare(QuadCollector collector, BlockState state) {
+			this.collector = collector;
 			this.state = state;
-			this.pos = pos;
-			this.renderContext = renderContext;
-			this.useManualCulling = useManualCulling;
 
 			active = true;
 			didEmit = false;
@@ -192,55 +275,43 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 		}
 
 		public void reset() {
-			emitter = null;
-			blockView = null;
+			collector = null;
 			state = null;
-			pos = null;
-			renderContext = null;
-			useManualCulling = false;
 
 			active = false;
 		}
 	}
 
-	protected static class EmissiveItemQuadTransform implements RenderContext.QuadTransform {
-		protected QuadEmitter emitter;
-
+	/**
+	 * The item equivalent, which hands back the finished quad rather than emitting it.
+	 */
+	public static class EmissiveItemQuadTransform {
 		protected boolean active;
-		protected boolean didEmit;
 
-		@Override
-		public boolean transform(MutableQuadView quad) {
-			Sprite sprite = RenderUtil.getSpriteFinder().find(quad);
-			Sprite emissiveSprite = EmissiveSpriteApi.get().getEmissiveSprite(sprite);
-			if (emissiveSprite != null) {
-				emitter.copyFrom(quad);
-				emitter.material(DEFAULT_EMISSIVE_MATERIAL);
-				QuadUtil.interpolate(emitter, sprite, emissiveSprite);
-				emitter.emit();
-				didEmit = true;
+		@Nullable
+		public BakedQuad transform(MutableQuad quad) {
+			TextureAtlasSprite sprite = quad.sprite();
+			TextureAtlasSprite emissiveSprite = getEmissiveSprite(quad);
+			if (emissiveSprite == null) {
+				return null;
 			}
-			return true;
+
+			quad.material(DEFAULT_EMISSIVE_MATERIAL);
+			QuadUtil.interpolate(quad, sprite, emissiveSprite);
+			quad.sprite(emissiveSprite);
+			return quad.toBakedQuad();
 		}
 
 		public boolean isActive() {
 			return active;
 		}
 
-		public boolean didEmit() {
-			return didEmit;
-		}
-
-		public void prepare(QuadEmitter emitter) {
-			this.emitter = emitter;
-
+		public void prepare() {
 			active = true;
-			didEmit = false;
 		}
 
 		public void reset() {
 			active = false;
-			emitter = null;
 		}
 	}
 }

@@ -4,19 +4,20 @@
   "package": "me.pepperbell.continuity.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "AtlasLoaderMixin",
-    "BakedModelManagerMixin",
-    "BlockModelsMixin",
-    "FallingBlockEntityRendererMixin",
-    "IdentifierMixin",
-    "LifecycledResourceManagerImplMixin",
-    "ModelLoaderMixin",
-    "NamespaceResourceManagerMixin",
-    "PistonBlockEntityRendererMixin",
-    "ReloadableResourceManagerImplAccessor",
-    "RenderLayersMixin",
+    "BlockModelShaperMixin",
+    "FallbackResourceManagerMixin",
+    "ItemBlockRenderTypesMixin",
+    "ItemRendererMixin",
+    "ModelBlockRendererMixin",
+    "ModelManagerMixin",
+    "MultiPackResourceManagerMixin",
+    "QuadLighterMixin",
+    "ReloadableResourceManagerAccessor",
+    "RenderChunkRegionAccessor",
+    "ResourceLocationMixin",
     "SpriteLoaderMixin",
-    "SpriteMixin"
+    "SpriteSourceListMixin",
+    "TextureAtlasSpriteMixin"
   ],
   "injectors": {
     "defaultRequire": 1

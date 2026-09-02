@@ -5,21 +5,21 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import me.pepperbell.continuity.client.mixinterface.SpriteExtension;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-@Mixin(Sprite.class)
-abstract class SpriteMixin implements SpriteExtension {
+@Mixin(TextureAtlasSprite.class)
+abstract class TextureAtlasSpriteMixin implements SpriteExtension {
 	@Unique
-	private Sprite continuity$emissiveSprite;
+	private TextureAtlasSprite continuity$emissiveSprite;
 
 	@Override
 	@Nullable
-	public Sprite continuity$getEmissiveSprite() {
+	public TextureAtlasSprite continuity$getEmissiveSprite() {
 		return continuity$emissiveSprite;
 	}
 
 	@Override
-	public void continuity$setEmissiveSprite(Sprite sprite) {
+	public void continuity$setEmissiveSprite(TextureAtlasSprite sprite) {
 		continuity$emissiveSprite = sprite;
 	}
 }

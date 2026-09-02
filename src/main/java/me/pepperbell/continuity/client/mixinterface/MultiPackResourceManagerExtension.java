@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import me.pepperbell.continuity.client.resource.ResourceRedirectHandler;
 
-public interface LifecycledResourceManagerImplExtension {
+public interface MultiPackResourceManagerExtension {
 	@Nullable
 	ResourceRedirectHandler continuity$getRedirectHandler();
 }

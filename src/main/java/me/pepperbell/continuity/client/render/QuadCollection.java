@@ -1,0 +1,58 @@
+package me.pepperbell.continuity.client.render;
+
+import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.core.Direction;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+
+/**
+ * The quads a model produced for one block, bucketed the way NeoForge asks for them: by render type, then by the face
+ * they are culled against.
+ *
+ * <p>A {@code null} render type means the caller wants everything at once, which is what the block breaking overlay
+ * and other non-standard render paths do.
+ */
+public final class QuadCollection {
+	public static final int NO_CULL_FACE_INDEX = 6;
+	public static final int BUCKET_COUNT = 7;
+
+	private static final List<BakedQuad> EMPTY = List.of();
+
+	private final Map<RenderType, List<BakedQuad>[]> byRenderType;
+	private final List<BakedQuad>[] all;
+	private final ChunkRenderTypeSet renderTypes;
+
+	QuadCollection(Map<RenderType, List<BakedQuad>[]> byRenderType, List<BakedQuad>[] all, ChunkRenderTypeSet renderTypes) {
+		this.byRenderType = byRenderType;
+		this.all = all;
+		this.renderTypes = renderTypes;
+	}
+
+	public static int bucketIndex(@Nullable Direction cullFace) {
+		return cullFace == null ? NO_CULL_FACE_INDEX : cullFace.ordinal();
+	}
+
+	public List<BakedQuad> getQuads(@Nullable Direction cullFace, @Nullable RenderType renderType) {
+		List<BakedQuad>[] buckets;
+		if (renderType == null) {
+			buckets = all;
+		} else {
+			buckets = byRenderType.get(renderType);
+			if (buckets == null) {
+				return EMPTY;
+			}
+		}
+
+		List<BakedQuad> quads = buckets[bucketIndex(cullFace)];
+		return quads == null ? EMPTY : quads;
+	}
+
+	public ChunkRenderTypeSet getRenderTypes() {
+		return renderTypes;
+	}
+}

@@ -1,33 +1,62 @@
-# gradle
+###############################################################################
+# Continuity - .gitignore for a Java / NeoForge Minecraft mod
+###############################################################################
 
-.gradle/
+## Gradle build output
 build/
+.gradle/
+gradletasknamecache
+gradle-app.setting
+
+# gradle/wrapper/gradle-wrapper.jar is intentionally TRACKED. It is what lets a
+# fresh clone run ./gradlew without Gradle installed, so never add a blanket
+# *.jar rule here.
+
+## Local maven repository, written by the publishing block in build.gradle
+repo/
+
+## IDE / editor cruft
+.idea/
+.vscode/
+.vs/
 out/
 classes/
-
-# eclipse
-
-*.launch
-
-# idea
-
-.idea/
 *.iml
 *.ipr
 *.iws
-
-# vscode
-
 .settings/
-.vscode/
-bin/
+.metadata/
 .classpath
 .project
+bin/
+eclipse/
+*.launch
 
-# macos
+## OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
 
-*.DS_Store
-
-# fabric
-
+## Development runtime
+# Produced by launching the game: worlds, logs, crash reports, options, and any
+# mods copied in for testing. A world save in particular would be both large and
+# meaningless to anyone else.
 run/
+runs/
+run-*/
+logs/
+
+## Crash artefacts, wherever they land
+crash-reports/
+*.hprof
+hs_err_pid*.log
+
+###############################################################################
+# Local-only reference material. NOT for publication.
+#
+# Third-party mod binaries kept locally so development runs can load them for
+# compatibility testing. They are other people's work under other people's
+# licences, several of which forbid redistribution. This mod ships none of them.
+###############################################################################
+external-files/
+NOTES.md

@@ -18,17 +18,17 @@ import me.pepperbell.continuity.client.properties.CompactConnectingCtmProperties
 import me.pepperbell.continuity.client.util.MathUtil;
 import me.pepperbell.continuity.client.util.QuadUtil;
 import me.pepperbell.continuity.client.util.TextureUtil;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import me.pepperbell.continuity.client.render.MutableQuadView;
+import me.pepperbell.continuity.client.render.QuadEmitter;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 	protected static final int[][] QUADRANT_INDEX_MAPS = new int[8][];
@@ -57,9 +57,9 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 	protected boolean innerSeams;
 	protected OrientationMode orientationMode;
 	@Nullable
-	protected Sprite[] replacementSprites;
+	protected TextureAtlasSprite[] replacementSprites;
 
-	public CompactCtmQuadProcessor(Sprite[] sprites, ProcessingPredicate processingPredicate, ConnectionPredicate connectionPredicate, boolean innerSeams, OrientationMode orientationMode, @Nullable Sprite[] replacementSprites) {
+	public CompactCtmQuadProcessor(TextureAtlasSprite[] sprites, ProcessingPredicate processingPredicate, ConnectionPredicate connectionPredicate, boolean innerSeams, OrientationMode orientationMode, @Nullable TextureAtlasSprite[] replacementSprites) {
 		super(sprites, processingPredicate);
 		this.connectionPredicate = connectionPredicate;
 		this.innerSeams = innerSeams;
@@ -68,17 +68,17 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 	}
 
 	@Override
-	public ProcessingResult processQuadInner(MutableQuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, int pass, ProcessingContext context) {
+	public ProcessingResult processQuadInner(MutableQuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, int pass, ProcessingContext context) {
 		int orientation = orientationMode.getOrientation(quad, appearanceState);
 		Direction[] directions = DirectionMaps.getMap(quad.lightFace())[orientation];
-		BlockPos.Mutable mutablePos = context.getData(ProcessingDataKeys.MUTABLE_POS);
+		BlockPos.MutableBlockPos mutablePos = context.getData(ProcessingDataKeys.MUTABLE_POS);
 		int connections = CtmSpriteProvider.getConnections(directions, connectionPredicate, innerSeams, mutablePos, blockView, appearanceState, state, pos, quad.lightFace(), sprite);
 
 		//
 
 		if (replacementSprites != null) {
 			int ctmIndex = CtmSpriteProvider.SPRITE_INDEX_MAP[connections];
-			Sprite replacementSprite = replacementSprites[ctmIndex];
+			TextureAtlasSprite replacementSprite = replacementSprites[ctmIndex];
 			if (replacementSprite != null) {
 				if (!TextureUtil.isMissingSprite(replacementSprite)) {
 					QuadUtil.interpolate(quad, sprite, replacementSprite);
@@ -90,14 +90,14 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 		//
 
 		// UVs normalized to the sprite dimensions and centered at the middle of the sprite
-		float un0 = MathHelper.getLerpProgress(quad.u(0), sprite.getMinU(), sprite.getMaxU()) - 0.5f;
-		float vn0 = MathHelper.getLerpProgress(quad.v(0), sprite.getMinV(), sprite.getMaxV()) - 0.5f;
-		float un1 = MathHelper.getLerpProgress(quad.u(1), sprite.getMinU(), sprite.getMaxU()) - 0.5f;
-		float vn1 = MathHelper.getLerpProgress(quad.v(1), sprite.getMinV(), sprite.getMaxV()) - 0.5f;
-		float un2 = MathHelper.getLerpProgress(quad.u(2), sprite.getMinU(), sprite.getMaxU()) - 0.5f;
-		float vn2 = MathHelper.getLerpProgress(quad.v(2), sprite.getMinV(), sprite.getMaxV()) - 0.5f;
-		float un3 = MathHelper.getLerpProgress(quad.u(3), sprite.getMinU(), sprite.getMaxU()) - 0.5f;
-		float vn3 = MathHelper.getLerpProgress(quad.v(3), sprite.getMinV(), sprite.getMaxV()) - 0.5f;
+		float un0 = Mth.inverseLerp(quad.u(0), sprite.getU0(), sprite.getU1()) - 0.5f;
+		float vn0 = Mth.inverseLerp(quad.v(0), sprite.getV0(), sprite.getV1()) - 0.5f;
+		float un1 = Mth.inverseLerp(quad.u(1), sprite.getU0(), sprite.getU1()) - 0.5f;
+		float vn1 = Mth.inverseLerp(quad.v(1), sprite.getV0(), sprite.getV1()) - 0.5f;
+		float un2 = Mth.inverseLerp(quad.u(2), sprite.getU0(), sprite.getU1()) - 0.5f;
+		float vn2 = Mth.inverseLerp(quad.v(2), sprite.getV0(), sprite.getV1()) - 0.5f;
+		float un3 = Mth.inverseLerp(quad.u(3), sprite.getU0(), sprite.getU1()) - 0.5f;
+		float vn3 = Mth.inverseLerp(quad.v(3), sprite.getV0(), sprite.getV1()) - 0.5f;
 
 		// Signums representing which side of the splitting line the U or V coordinate lies on
 		int uSignum0 = (int) Math.signum(un0);
@@ -168,17 +168,17 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 				float delta30;
 				float delta4;
 				if (uSplit01) {
-					delta01 = MathHelper.getLerpProgress(0, un0, un1);
-					delta23 = MathHelper.getLerpProgress(0, un2, un3);
-					delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-					delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
-					delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, vn0, vn1), MathHelper.lerp(delta23, vn2, vn3));
+					delta01 = Mth.inverseLerp(0, un0, un1);
+					delta23 = Mth.inverseLerp(0, un2, un3);
+					delta12 = Mth.inverseLerp(0, vn1, vn2);
+					delta30 = Mth.inverseLerp(0, vn3, vn0);
+					delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, vn0, vn1), Mth.lerp(delta23, vn2, vn3));
 				} else {
-					delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-					delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
-					delta12 = MathHelper.getLerpProgress(0, un1, un2);
-					delta30 = MathHelper.getLerpProgress(0, un3, un0);
-					delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, un0, un1), MathHelper.lerp(delta23, un2, un3));
+					delta01 = Mth.inverseLerp(0, vn0, vn1);
+					delta23 = Mth.inverseLerp(0, vn2, vn3);
+					delta12 = Mth.inverseLerp(0, un1, un2);
+					delta30 = Mth.inverseLerp(0, un3, un0);
+					delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, un0, un1), Mth.lerp(delta23, un2, un3));
 				}
 
 				vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -208,11 +208,11 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta01;
 						float delta23;
 						if (uSplit01) {
-							delta01 = MathHelper.getLerpProgress(0, un0, un1);
-							delta23 = MathHelper.getLerpProgress(0, un2, un3);
+							delta01 = Mth.inverseLerp(0, un0, un1);
+							delta23 = Mth.inverseLerp(0, un2, un3);
 						} else {
-							delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-							delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
+							delta01 = Mth.inverseLerp(0, vn0, vn1);
+							delta23 = Mth.inverseLerp(0, vn2, vn3);
 						}
 
 						vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -224,11 +224,11 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta12;
 						float delta30;
 						if (uSplit01) {
-							delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-							delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
+							delta12 = Mth.inverseLerp(0, vn1, vn2);
+							delta30 = Mth.inverseLerp(0, vn3, vn0);
 						} else {
-							delta12 = MathHelper.getLerpProgress(0, un1, un2);
-							delta30 = MathHelper.getLerpProgress(0, un3, un0);
+							delta12 = Mth.inverseLerp(0, un1, un2);
+							delta30 = Mth.inverseLerp(0, un3, un0);
 						}
 
 						vertexContainer.vertex12.setLerped(delta12, vertexContainer.vertex1, vertexContainer.vertex2);
@@ -244,15 +244,15 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta30;
 						float delta4;
 						if (uSplit01) {
-							delta23 = MathHelper.getLerpProgress(0, un2, un3);
-							delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-							delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta12, un1, un2), MathHelper.lerp(delta30, un3, un0));
+							delta23 = Mth.inverseLerp(0, un2, un3);
+							delta12 = Mth.inverseLerp(0, vn1, vn2);
+							delta30 = Mth.inverseLerp(0, vn3, vn0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta12, un1, un2), Mth.lerp(delta30, un3, un0));
 						} else {
-							delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
-							delta12 = MathHelper.getLerpProgress(0, un1, un2);
-							delta30 = MathHelper.getLerpProgress(0, un3, un0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta12, vn1, vn2), MathHelper.lerp(delta30, vn3, vn0));
+							delta23 = Mth.inverseLerp(0, vn2, vn3);
+							delta12 = Mth.inverseLerp(0, un1, un2);
+							delta30 = Mth.inverseLerp(0, un3, un0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta12, vn1, vn2), Mth.lerp(delta30, vn3, vn0));
 						}
 
 						vertexContainer.vertex23.setLerped(delta23, vertexContainer.vertex2, vertexContainer.vertex3);
@@ -269,15 +269,15 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta30;
 						float delta4;
 						if (uSplit01) {
-							delta01 = MathHelper.getLerpProgress(0, un0, un1);
-							delta23 = MathHelper.getLerpProgress(0, un2, un3);
-							delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, vn0, vn1), MathHelper.lerp(delta23, vn2, vn3));
+							delta01 = Mth.inverseLerp(0, un0, un1);
+							delta23 = Mth.inverseLerp(0, un2, un3);
+							delta30 = Mth.inverseLerp(0, vn3, vn0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, vn0, vn1), Mth.lerp(delta23, vn2, vn3));
 						} else {
-							delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-							delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
-							delta30 = MathHelper.getLerpProgress(0, un3, un0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, un0, un1), MathHelper.lerp(delta23, un2, un3));
+							delta01 = Mth.inverseLerp(0, vn0, vn1);
+							delta23 = Mth.inverseLerp(0, vn2, vn3);
+							delta30 = Mth.inverseLerp(0, un3, un0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, un0, un1), Mth.lerp(delta23, un2, un3));
 						}
 
 						vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -294,15 +294,15 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta30;
 						float delta4;
 						if (uSplit01) {
-							delta01 = MathHelper.getLerpProgress(0, un0, un1);
-							delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-							delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta12, un1, un2), MathHelper.lerp(delta30, un3, un0));
+							delta01 = Mth.inverseLerp(0, un0, un1);
+							delta12 = Mth.inverseLerp(0, vn1, vn2);
+							delta30 = Mth.inverseLerp(0, vn3, vn0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta12, un1, un2), Mth.lerp(delta30, un3, un0));
 						} else {
-							delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-							delta12 = MathHelper.getLerpProgress(0, un1, un2);
-							delta30 = MathHelper.getLerpProgress(0, un3, un0);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta12, vn1, vn2), MathHelper.lerp(delta30, vn3, vn0));
+							delta01 = Mth.inverseLerp(0, vn0, vn1);
+							delta12 = Mth.inverseLerp(0, un1, un2);
+							delta30 = Mth.inverseLerp(0, un3, un0);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta12, vn1, vn2), Mth.lerp(delta30, vn3, vn0));
 						}
 
 						vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -319,15 +319,15 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 						float delta12;
 						float delta4;
 						if (uSplit01) {
-							delta01 = MathHelper.getLerpProgress(0, un0, un1);
-							delta23 = MathHelper.getLerpProgress(0, un2, un3);
-							delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, vn0, vn1), MathHelper.lerp(delta23, vn2, vn3));
+							delta01 = Mth.inverseLerp(0, un0, un1);
+							delta23 = Mth.inverseLerp(0, un2, un3);
+							delta12 = Mth.inverseLerp(0, vn1, vn2);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, vn0, vn1), Mth.lerp(delta23, vn2, vn3));
 						} else {
-							delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-							delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
-							delta12 = MathHelper.getLerpProgress(0, un1, un2);
-							delta4 = MathHelper.getLerpProgress(0, MathHelper.lerp(delta01, un0, un1), MathHelper.lerp(delta23, un2, un3));
+							delta01 = Mth.inverseLerp(0, vn0, vn1);
+							delta23 = Mth.inverseLerp(0, vn2, vn3);
+							delta12 = Mth.inverseLerp(0, un1, un2);
+							delta4 = Mth.inverseLerp(0, Mth.lerp(delta01, un0, un1), Mth.lerp(delta23, un2, un3));
 						}
 
 						vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -391,11 +391,11 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 				float delta01;
 				float delta23;
 				if (uSplit) {
-					delta01 = MathHelper.getLerpProgress(0, un0, un1);
-					delta23 = MathHelper.getLerpProgress(0, un2, un3);
+					delta01 = Mth.inverseLerp(0, un0, un1);
+					delta23 = Mth.inverseLerp(0, un2, un3);
 				} else {
-					delta01 = MathHelper.getLerpProgress(0, vn0, vn1);
-					delta23 = MathHelper.getLerpProgress(0, vn2, vn3);
+					delta01 = Mth.inverseLerp(0, vn0, vn1);
+					delta23 = Mth.inverseLerp(0, vn2, vn3);
 				}
 
 				vertexContainer.vertex01.setLerped(delta01, vertexContainer.vertex0, vertexContainer.vertex1);
@@ -407,11 +407,11 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 				float delta12;
 				float delta30;
 				if (uSplit) {
-					delta12 = MathHelper.getLerpProgress(0, un1, un2);
-					delta30 = MathHelper.getLerpProgress(0, un3, un0);
+					delta12 = Mth.inverseLerp(0, un1, un2);
+					delta30 = Mth.inverseLerp(0, un3, un0);
 				} else {
-					delta12 = MathHelper.getLerpProgress(0, vn1, vn2);
-					delta30 = MathHelper.getLerpProgress(0, vn3, vn0);
+					delta12 = Mth.inverseLerp(0, vn1, vn2);
+					delta30 = Mth.inverseLerp(0, vn3, vn0);
 				}
 
 				vertexContainer.vertex12.setLerped(delta12, vertexContainer.vertex1, vertexContainer.vertex2);
@@ -477,14 +477,14 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 		return 0;
 	}
 
-	protected void tryInterpolate(MutableQuadView quad, Sprite oldSprite, int spriteIndex) {
-		Sprite newSprite = sprites[spriteIndex];
+	protected void tryInterpolate(MutableQuadView quad, TextureAtlasSprite oldSprite, int spriteIndex) {
+		TextureAtlasSprite newSprite = sprites[spriteIndex];
 		if (!TextureUtil.isMissingSprite(newSprite)) {
 			QuadUtil.interpolate(quad, oldSprite, newSprite);
 		}
 	}
 
-	protected void splitHalf(QuadView quad, Sprite sprite, VertexContainer vertexContainer, int id, QuadEmitter quadEmitter, int spriteIndex) {
+	protected void splitHalf(QuadView quad, TextureAtlasSprite sprite, VertexContainer vertexContainer, int id, QuadEmitter quadEmitter, int spriteIndex) {
 		quadEmitter.copyFrom(quad);
 		vertexContainer.lerpedVertices[(id + 1) % 4].writeToQuad(quadEmitter, (id + 2) % 4);
 		int id3 = (id + 3) % 4;
@@ -493,7 +493,7 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 		quadEmitter.emit();
 	}
 
-	protected void splitQuadrant(QuadView quad, Sprite sprite, VertexContainer vertexContainer, int id, QuadEmitter quadEmitter, int spriteIndex) {
+	protected void splitQuadrant(QuadView quad, TextureAtlasSprite sprite, VertexContainer vertexContainer, int id, QuadEmitter quadEmitter, int spriteIndex) {
 		quadEmitter.copyFrom(quad);
 		vertexContainer.lerpedVertices[id].writeToQuad(quadEmitter, (id + 1) % 4);
 		vertexContainer.vertex4.writeToQuad(quadEmitter, (id + 2) % 4);
@@ -559,17 +559,17 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 		}
 
 		public void setLerped(float delta, Vertex vertexA, Vertex vertexB) {
-			x = MathHelper.lerp(delta, vertexA.x, vertexB.x);
-			y = MathHelper.lerp(delta, vertexA.y, vertexB.y);
-			z = MathHelper.lerp(delta, vertexA.z, vertexB.z);
+			x = Mth.lerp(delta, vertexA.x, vertexB.x);
+			y = Mth.lerp(delta, vertexA.y, vertexB.y);
+			z = Mth.lerp(delta, vertexA.z, vertexB.z);
 			color = MathUtil.lerpColor(delta, vertexA.color, vertexB.color);
 			light = MathUtil.lerpLight(delta, vertexA.light, vertexB.light);
-			u = MathHelper.lerp(delta, vertexA.u, vertexB.u);
-			v = MathHelper.lerp(delta, vertexA.v, vertexB.v);
+			u = Mth.lerp(delta, vertexA.u, vertexB.u);
+			v = Mth.lerp(delta, vertexA.v, vertexB.v);
 			if (vertexA.hasNormal && vertexB.hasNormal) {
-				normalX = MathHelper.lerp(delta, vertexA.normalX, vertexB.normalX);
-				normalY = MathHelper.lerp(delta, vertexA.normalY, vertexB.normalY);
-				normalZ = MathHelper.lerp(delta, vertexA.normalZ, vertexB.normalZ);
+				normalX = Mth.lerp(delta, vertexA.normalX, vertexB.normalX);
+				normalY = Mth.lerp(delta, vertexA.normalY, vertexB.normalY);
+				normalZ = Mth.lerp(delta, vertexA.normalZ, vertexB.normalZ);
 				float sqLength = normalX * normalX + normalY * normalY + normalZ * normalZ;
 				if (sqLength != 0) {
 					float scale = 1 / (float) Math.sqrt(sqLength);
@@ -607,17 +607,17 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 	// TODO
 	public static class Factory implements QuadProcessor.Factory<CompactConnectingCtmProperties> {
 		@Override
-		public QuadProcessor createProcessor(CompactConnectingCtmProperties properties, Function<SpriteIdentifier, Sprite> textureGetter) {
+		public QuadProcessor createProcessor(CompactConnectingCtmProperties properties, Function<Material, TextureAtlasSprite> textureGetter) {
 			int textureAmount = getTextureAmount(properties);
-			List<SpriteIdentifier> spriteIds = properties.getSpriteIds();
+			List<Material> spriteIds = properties.getSpriteIds();
 			int provided = spriteIds.size();
 			int max = provided;
 
-			Sprite[] replacementSprites = null;
+			TextureAtlasSprite[] replacementSprites = null;
 			Int2IntMap replacementMap = properties.getTileReplacementMap();
 			if (replacementMap != null) {
 				int replacementTextureAmount = getReplacementTextureAmount(properties);
-				replacementSprites = new Sprite[replacementTextureAmount];
+				replacementSprites = new TextureAtlasSprite[replacementTextureAmount];
 				ObjectIterator<Int2IntMap.Entry> entryIterator = Int2IntMaps.fastIterator(replacementMap);
 				while (entryIterator.hasNext()) {
 					Int2IntMap.Entry entry = entryIterator.next();
@@ -642,12 +642,12 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 				max = textureAmount;
 			}
 
-			Sprite[] sprites = new Sprite[textureAmount];
-			Sprite missingSprite = textureGetter.apply(TextureUtil.MISSING_SPRITE_ID);
+			TextureAtlasSprite[] sprites = new TextureAtlasSprite[textureAmount];
+			TextureAtlasSprite missingSprite = textureGetter.apply(TextureUtil.MISSING_SPRITE_ID);
 			boolean supportsNullSprites = supportsNullSprites(properties);
 			for (int i = 0; i < max; i++) {
-				Sprite sprite;
-				SpriteIdentifier spriteId = spriteIds.get(i);
+				TextureAtlasSprite sprite;
+				Material spriteId = spriteIds.get(i);
 				if (spriteId.equals(BaseCtmProperties.SPECIAL_SKIP_SPRITE_ID)) {
 					sprite = missingSprite;
 				} else if (spriteId.equals(BaseCtmProperties.SPECIAL_DEFAULT_SPRITE_ID)) {
@@ -668,7 +668,7 @@ public class CompactCtmQuadProcessor extends AbstractQuadProcessor {
 			return createProcessor(properties, sprites, replacementSprites);
 		}
 
-		public QuadProcessor createProcessor(CompactConnectingCtmProperties properties, Sprite[] sprites, @Nullable Sprite[] replacementSprites) {
+		public QuadProcessor createProcessor(CompactConnectingCtmProperties properties, TextureAtlasSprite[] sprites, @Nullable TextureAtlasSprite[] replacementSprites) {
 			return new CompactCtmQuadProcessor(sprites, BaseProcessingPredicate.fromProperties(properties), properties.getConnectionPredicate(), properties.getInnerSeams(), properties.getOrientationMode(), replacementSprites);
 		}
 

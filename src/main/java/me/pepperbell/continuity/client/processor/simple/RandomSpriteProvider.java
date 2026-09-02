@@ -10,23 +10,23 @@ import me.pepperbell.continuity.client.processor.Symmetry;
 import me.pepperbell.continuity.client.properties.RandomCtmProperties;
 import me.pepperbell.continuity.client.util.MathUtil;
 import me.pepperbell.continuity.client.util.RandomIndexProvider;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class RandomSpriteProvider implements SpriteProvider {
-	protected Sprite[] sprites;
+	protected TextureAtlasSprite[] sprites;
 	protected RandomIndexProvider indexProvider;
 	protected int randomLoops;
 	protected Symmetry symmetry;
 	protected boolean linked;
 
-	public RandomSpriteProvider(Sprite[] sprites, RandomIndexProvider indexProvider, int randomLoops, Symmetry symmetry, boolean linked) {
+	public RandomSpriteProvider(TextureAtlasSprite[] sprites, RandomIndexProvider indexProvider, int randomLoops, Symmetry symmetry, boolean linked) {
 		this.sprites = sprites;
 		this.indexProvider = indexProvider;
 		this.randomLoops = randomLoops;
@@ -36,7 +36,7 @@ public class RandomSpriteProvider implements SpriteProvider {
 
 	@Override
 	@Nullable
-	public Sprite getSprite(QuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, ProcessingDataProvider dataProvider) {
+	public TextureAtlasSprite getSprite(QuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, ProcessingDataProvider dataProvider) {
 		Direction face = quad.lightFace();
 
 		int x = pos.getX();
@@ -45,7 +45,7 @@ public class RandomSpriteProvider implements SpriteProvider {
 
 		if (linked) {
 			Block block = appearanceState.getBlock();
-			BlockPos.Mutable mutablePos = dataProvider.getData(ProcessingDataKeys.MUTABLE_POS).set(pos);
+			BlockPos.MutableBlockPos mutablePos = dataProvider.getData(ProcessingDataKeys.MUTABLE_POS).set(pos);
 
 			int i = 0;
 			do {
@@ -61,7 +61,7 @@ public class RandomSpriteProvider implements SpriteProvider {
 
 	public static class Factory implements SpriteProvider.Factory<RandomCtmProperties> {
 		@Override
-		public SpriteProvider createSpriteProvider(Sprite[] sprites, RandomCtmProperties properties) {
+		public SpriteProvider createSpriteProvider(TextureAtlasSprite[] sprites, RandomCtmProperties properties) {
 			if (sprites.length == 1) {
 				return new FixedSpriteProvider(sprites[0]);
 			}

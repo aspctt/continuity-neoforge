@@ -6,21 +6,21 @@ import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public interface SpriteLoaderLoadContext {
 	ThreadLocal<SpriteLoaderLoadContext> THREAD_LOCAL = new ThreadLocal<>();
 
-	CompletableFuture<@Nullable Set<Identifier>> getExtraIdsFuture(Identifier atlasId);
+	CompletableFuture<@Nullable Set<ResourceLocation>> getExtraIdsFuture(ResourceLocation atlasId);
 
 	@Nullable
-	EmissiveControl getEmissiveControl(Identifier atlasId);
+	EmissiveControl getEmissiveControl(ResourceLocation atlasId);
 
 	interface EmissiveControl {
 		@Nullable
-		Map<Identifier, Identifier> getEmissiveIdMap();
+		Map<ResourceLocation, ResourceLocation> getEmissiveIdMap();
 
-		void setEmissiveIdMap(Map<Identifier, Identifier> emissiveIdMap);
+		void setEmissiveIdMap(Map<ResourceLocation, ResourceLocation> emissiveIdMap);
 
 		void markHasEmissives();
 	}

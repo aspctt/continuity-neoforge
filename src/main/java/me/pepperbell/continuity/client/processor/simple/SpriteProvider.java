@@ -6,19 +6,19 @@ import org.jetbrains.annotations.Nullable;
 
 import me.pepperbell.continuity.api.client.ProcessingDataProvider;
 import me.pepperbell.continuity.client.properties.BaseCtmProperties;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public interface SpriteProvider {
 	@Nullable
-	Sprite getSprite(QuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, ProcessingDataProvider dataProvider);
+	TextureAtlasSprite getSprite(QuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, ProcessingDataProvider dataProvider);
 
 	interface Factory<T extends BaseCtmProperties> {
-		SpriteProvider createSpriteProvider(Sprite[] sprites, T properties);
+		SpriteProvider createSpriteProvider(TextureAtlasSprite[] sprites, T properties);
 
 		int getTextureAmount(T properties);
 	}

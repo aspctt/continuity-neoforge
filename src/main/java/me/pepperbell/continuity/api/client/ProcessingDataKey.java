@@ -6,11 +6,11 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 @ApiStatus.NonExtendable
 public interface ProcessingDataKey<T> {
-	Identifier getId();
+	ResourceLocation getId();
 
 	int getRawId();
 

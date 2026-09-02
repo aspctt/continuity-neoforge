@@ -8,19 +8,19 @@ import org.jetbrains.annotations.Nullable;
 
 import me.pepperbell.continuity.api.client.CachingPredicates;
 import me.pepperbell.continuity.client.properties.BaseCtmProperties;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.resources.ResourceLocation;
 
 public class BaseCachingPredicates implements CachingPredicates {
 	@Nullable
-	protected Set<Identifier> spriteIdSet;
+	protected Set<ResourceLocation> spriteIdSet;
 	@Nullable
 	protected Predicate<BlockState> blockStatePredicate;
 	protected boolean isValidForMultipass;
 
-	public BaseCachingPredicates(@Nullable Set<Identifier> spriteIdSet, @Nullable Predicate<BlockState> blockStatePredicate, boolean isValidForMultipass) {
+	public BaseCachingPredicates(@Nullable Set<ResourceLocation> spriteIdSet, @Nullable Predicate<BlockState> blockStatePredicate, boolean isValidForMultipass) {
 		this.spriteIdSet = spriteIdSet;
 		this.blockStatePredicate = blockStatePredicate;
 		this.isValidForMultipass = isValidForMultipass;
@@ -32,9 +32,9 @@ public class BaseCachingPredicates implements CachingPredicates {
 	}
 
 	@Override
-	public boolean affectsSprite(Sprite sprite) {
+	public boolean affectsSprite(TextureAtlasSprite sprite) {
 		if (spriteIdSet != null) {
-			return spriteIdSet.contains(sprite.getContents().getId());
+			return spriteIdSet.contains(sprite.contents().name());
 		}
 		return false;
 	}
@@ -65,7 +65,7 @@ public class BaseCachingPredicates implements CachingPredicates {
 		}
 
 		@Override
-		public CachingPredicates createPredicates(T properties, Function<SpriteIdentifier, Sprite> textureGetter) {
+		public CachingPredicates createPredicates(T properties, Function<Material, TextureAtlasSprite> textureGetter) {
 			return new BaseCachingPredicates(properties.getMatchTilesSet(), properties.getMatchBlocksPredicate(), isValidForMultipass);
 		}
 	}

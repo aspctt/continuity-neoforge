@@ -1,21 +1,21 @@
 package me.pepperbell.continuity.client.util;
 
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
+import me.pepperbell.continuity.client.render.RenderMaterial;
+import me.pepperbell.continuity.client.render.MutableQuadView;
+import me.pepperbell.continuity.client.render.QuadEmitter;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 
 public final class QuadUtil {
-	public static void interpolate(MutableQuadView quad, Sprite oldSprite, Sprite newSprite) {
-		float oldMinU = oldSprite.getMinU();
-		float oldMinV = oldSprite.getMinV();
-		float newMinU = newSprite.getMinU();
-		float newMinV = newSprite.getMinV();
-		float uFactor = (newSprite.getMaxU() - newMinU) / (oldSprite.getMaxU() - oldMinU);
-		float vFactor = (newSprite.getMaxV() - newMinV) / (oldSprite.getMaxV() - oldMinV);
+	public static void interpolate(MutableQuadView quad, TextureAtlasSprite oldSprite, TextureAtlasSprite newSprite) {
+		float oldMinU = oldSprite.getU0();
+		float oldMinV = oldSprite.getV0();
+		float newMinU = newSprite.getU0();
+		float newMinV = newSprite.getV0();
+		float uFactor = (newSprite.getU1() - newMinU) / (oldSprite.getU1() - oldMinU);
+		float vFactor = (newSprite.getV1() - newMinV) / (oldSprite.getV1() - oldMinV);
 		for (int i = 0; i < 4; i++) {
 			quad.uv(i,
 					newMinU + (quad.u(i) - oldMinU) * uFactor,
@@ -24,21 +24,21 @@ public final class QuadUtil {
 		}
 	}
 
-	public static void assignLerpedUVs(MutableQuadView quad, Sprite sprite) {
-		float delta = sprite.getAnimationFrameDelta();
-		float centerU = (sprite.getMinU() + sprite.getMaxU()) * 0.5f;
-		float centerV = (sprite.getMinV() + sprite.getMaxV()) * 0.5f;
-		float lerpedMinU = MathHelper.lerp(delta, sprite.getMinU(), centerU);
-		float lerpedMaxU = MathHelper.lerp(delta, sprite.getMaxU(), centerU);
-		float lerpedMinV = MathHelper.lerp(delta, sprite.getMinV(), centerV);
-		float lerpedMaxV = MathHelper.lerp(delta, sprite.getMaxV(), centerV);
+	public static void assignLerpedUVs(MutableQuadView quad, TextureAtlasSprite sprite) {
+		float delta = sprite.uvShrinkRatio();
+		float centerU = (sprite.getU0() + sprite.getU1()) * 0.5f;
+		float centerV = (sprite.getV0() + sprite.getV1()) * 0.5f;
+		float lerpedMinU = Mth.lerp(delta, sprite.getU0(), centerU);
+		float lerpedMaxU = Mth.lerp(delta, sprite.getU1(), centerU);
+		float lerpedMinV = Mth.lerp(delta, sprite.getV0(), centerV);
+		float lerpedMaxV = Mth.lerp(delta, sprite.getV1(), centerV);
 		quad.uv(0, lerpedMinU, lerpedMinV);
 		quad.uv(1, lerpedMinU, lerpedMaxV);
 		quad.uv(2, lerpedMaxU, lerpedMaxV);
 		quad.uv(3, lerpedMaxU, lerpedMinV);
 	}
 
-	public static void emitOverlayQuad(QuadEmitter emitter, Direction face, Sprite sprite, int color, RenderMaterial material) {
+	public static void emitOverlayQuad(QuadEmitter emitter, Direction face, TextureAtlasSprite sprite, int color, RenderMaterial material) {
 		emitter.square(face, 0, 0, 1, 1, 0);
 		emitter.color(color, color, color, color);
 		assignLerpedUVs(emitter, sprite);

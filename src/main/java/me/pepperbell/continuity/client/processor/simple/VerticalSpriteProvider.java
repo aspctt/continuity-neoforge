@@ -10,13 +10,13 @@ import me.pepperbell.continuity.client.processor.DirectionMaps;
 import me.pepperbell.continuity.client.processor.OrientationMode;
 import me.pepperbell.continuity.client.processor.ProcessingDataKeys;
 import me.pepperbell.continuity.client.properties.OrientedConnectingCtmProperties;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class VerticalSpriteProvider implements SpriteProvider {
 	// Indices for this array are formed from these bit values:
@@ -27,12 +27,12 @@ public class VerticalSpriteProvider implements SpriteProvider {
 			3, 2, 0, 1,
 	};
 
-	protected Sprite[] sprites;
+	protected TextureAtlasSprite[] sprites;
 	protected ConnectionPredicate connectionPredicate;
 	protected boolean innerSeams;
 	protected OrientationMode orientationMode;
 
-	public VerticalSpriteProvider(Sprite[] sprites, ConnectionPredicate connectionPredicate, boolean innerSeams, OrientationMode orientationMode) {
+	public VerticalSpriteProvider(TextureAtlasSprite[] sprites, ConnectionPredicate connectionPredicate, boolean innerSeams, OrientationMode orientationMode) {
 		this.sprites = sprites;
 		this.connectionPredicate = connectionPredicate;
 		this.innerSeams = innerSeams;
@@ -41,17 +41,17 @@ public class VerticalSpriteProvider implements SpriteProvider {
 
 	@Override
 	@Nullable
-	public Sprite getSprite(QuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, ProcessingDataProvider dataProvider) {
+	public TextureAtlasSprite getSprite(QuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, ProcessingDataProvider dataProvider) {
 		Direction[] directions = DirectionMaps.getDirections(orientationMode, quad, appearanceState);
-		BlockPos.Mutable mutablePos = dataProvider.getData(ProcessingDataKeys.MUTABLE_POS);
+		BlockPos.MutableBlockPos mutablePos = dataProvider.getData(ProcessingDataKeys.MUTABLE_POS);
 		int connections = getConnections(directions, mutablePos, blockView, appearanceState, state, pos, quad.lightFace(), sprite);
 		return sprites[SPRITE_INDEX_MAP[connections]];
 	}
 
-	protected int getConnections(Direction[] directions, BlockPos.Mutable mutablePos, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Direction face, Sprite quadSprite) {
+	protected int getConnections(Direction[] directions, BlockPos.MutableBlockPos mutablePos, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Direction face, TextureAtlasSprite quadSprite) {
 		int connections = 0;
 		for (int i = 0; i < 2; i++) {
-			mutablePos.set(pos, directions[i * 2 + 1]);
+			mutablePos.setWithOffset(pos, directions[i * 2 + 1]);
 			if (connectionPredicate.shouldConnect(blockView, appearanceState, state, pos, mutablePos, face, quadSprite, innerSeams)) {
 				connections |= 1 << i;
 			}
@@ -61,7 +61,7 @@ public class VerticalSpriteProvider implements SpriteProvider {
 
 	public static class Factory implements SpriteProvider.Factory<OrientedConnectingCtmProperties> {
 		@Override
-		public SpriteProvider createSpriteProvider(Sprite[] sprites, OrientedConnectingCtmProperties properties) {
+		public SpriteProvider createSpriteProvider(TextureAtlasSprite[] sprites, OrientedConnectingCtmProperties properties) {
 			return new VerticalSpriteProvider(sprites, properties.getConnectionPredicate(), properties.getInnerSeams(), properties.getOrientationMode());
 		}
 

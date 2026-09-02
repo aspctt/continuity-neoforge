@@ -4,14 +4,14 @@ import org.jetbrains.annotations.Nullable;
 
 import me.pepperbell.continuity.api.client.EmissiveSpriteApi;
 import me.pepperbell.continuity.client.mixinterface.SpriteExtension;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 public final class EmissiveSpriteApiImpl implements EmissiveSpriteApi {
 	public static final EmissiveSpriteApiImpl INSTANCE = new EmissiveSpriteApiImpl();
 
 	@Override
 	@Nullable
-	public Sprite getEmissiveSprite(Sprite sprite) {
+	public TextureAtlasSprite getEmissiveSprite(TextureAtlasSprite sprite) {
 		return ((SpriteExtension) sprite).continuity$getEmissiveSprite();
 	}
 }

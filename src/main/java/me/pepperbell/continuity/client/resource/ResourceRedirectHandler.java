@@ -7,11 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import me.pepperbell.continuity.client.mixin.ReloadableResourceManagerImplAccessor;
-import me.pepperbell.continuity.client.mixinterface.LifecycledResourceManagerImplExtension;
+import me.pepperbell.continuity.client.mixin.ReloadableResourceManagerAccessor;
+import me.pepperbell.continuity.client.mixinterface.MultiPackResourceManagerExtension;
 import me.pepperbell.continuity.client.util.BooleanState;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 
 public class ResourceRedirectHandler {
 	public static final String SPRITE_PATH_START = "continuity_reserved/";
@@ -41,10 +41,10 @@ public class ResourceRedirectHandler {
 
 	@Nullable
 	public static ResourceRedirectHandler get(ResourceManager resourceManager) {
-		if (resourceManager instanceof ReloadableResourceManagerImplAccessor accessor) {
-			resourceManager = accessor.getActiveManager();
+		if (resourceManager instanceof ReloadableResourceManagerAccessor accessor) {
+			resourceManager = accessor.getResources();
 		}
-		if (resourceManager instanceof LifecycledResourceManagerImplExtension extension) {
+		if (resourceManager instanceof MultiPackResourceManagerExtension extension) {
 			return extension.continuity$getRedirectHandler();
 		}
 		return null;
@@ -61,7 +61,7 @@ public class ResourceRedirectHandler {
 		return SPRITE_PATH_START + toHex(index);
 	}
 
-	public Identifier redirect(Identifier id) {
+	public ResourceLocation redirect(ResourceLocation id) {
 		String path = id.getPath();
 		if (!path.startsWith(PATH_START) || !path.endsWith(PATH_END)) {
 			return id;
@@ -88,7 +88,7 @@ public class ResourceRedirectHandler {
 
 		BooleanState invalidIdentifierState = InvalidIdentifierStateHolder.get();
 		invalidIdentifierState.enable();
-		Identifier newId = id.withPath(newPath);
+		ResourceLocation newId = id.withPath(newPath);
 		invalidIdentifierState.disable();
 
 		return newId;

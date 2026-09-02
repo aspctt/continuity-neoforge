@@ -11,12 +11,12 @@ import me.pepperbell.continuity.client.processor.ProcessingPredicate;
 import me.pepperbell.continuity.client.properties.BaseCtmProperties;
 import me.pepperbell.continuity.client.util.QuadUtil;
 import me.pepperbell.continuity.client.util.TextureUtil;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import me.pepperbell.continuity.client.render.MutableQuadView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class SimpleQuadProcessor implements QuadProcessor {
 	protected SpriteProvider spriteProvider;
@@ -28,15 +28,15 @@ public class SimpleQuadProcessor implements QuadProcessor {
 	}
 
 	@Override
-	public ProcessingResult processQuad(MutableQuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, int pass, ProcessingContext context) {
+	public ProcessingResult processQuad(MutableQuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, int pass, ProcessingContext context) {
 		if (!processingPredicate.shouldProcessQuad(quad, sprite, blockView, appearanceState, state, pos, context)) {
 			return ProcessingResult.NEXT_PROCESSOR;
 		}
-		Sprite newSprite = spriteProvider.getSprite(quad, sprite, blockView, appearanceState, state, pos, randomSupplier, context);
+		TextureAtlasSprite newSprite = spriteProvider.getSprite(quad, sprite, blockView, appearanceState, state, pos, randomSupplier, context);
 		return process(quad, sprite, newSprite);
 	}
 
-	public static ProcessingResult process(MutableQuadView quad, Sprite oldSprite, @Nullable Sprite newSprite) {
+	public static ProcessingResult process(MutableQuadView quad, TextureAtlasSprite oldSprite, @Nullable TextureAtlasSprite newSprite) {
 		if (newSprite == null) {
 			return ProcessingResult.STOP;
 		}
@@ -55,7 +55,7 @@ public class SimpleQuadProcessor implements QuadProcessor {
 		}
 
 		@Override
-		public QuadProcessor createProcessor(T properties, Sprite[] sprites) {
+		public QuadProcessor createProcessor(T properties, TextureAtlasSprite[] sprites) {
 			return new SimpleQuadProcessor(spriteProviderFactory.createSpriteProvider(sprites, properties), BaseProcessingPredicate.fromProperties(properties));
 		}
 

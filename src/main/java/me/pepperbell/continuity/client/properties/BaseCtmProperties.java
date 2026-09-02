@@ -29,40 +29,40 @@ import me.pepperbell.continuity.client.util.TextureUtil;
 import me.pepperbell.continuity.client.util.biome.BiomeHolder;
 import me.pepperbell.continuity.client.util.biome.BiomeHolderManager;
 import me.pepperbell.continuity.client.util.biome.BiomeSetPredicate;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.DefaultResourcePack;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourcePack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.packs.VanillaPackResources;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.biome.Biome;
 
 public class BaseCtmProperties implements CtmProperties {
-	public static final Identifier SPECIAL_SKIP_ID = ContinuityClient.asId("special/skip");
-	public static final Identifier SPECIAL_DEFAULT_ID = ContinuityClient.asId("special/default");
-	public static final SpriteIdentifier SPECIAL_SKIP_SPRITE_ID = TextureUtil.toSpriteId(SPECIAL_SKIP_ID);
-	public static final SpriteIdentifier SPECIAL_DEFAULT_SPRITE_ID = TextureUtil.toSpriteId(SPECIAL_DEFAULT_ID);
+	public static final ResourceLocation SPECIAL_SKIP_ID = ContinuityClient.asId("special/skip");
+	public static final ResourceLocation SPECIAL_DEFAULT_ID = ContinuityClient.asId("special/default");
+	public static final Material SPECIAL_SKIP_SPRITE_ID = TextureUtil.toSpriteId(SPECIAL_SKIP_ID);
+	public static final Material SPECIAL_DEFAULT_SPRITE_ID = TextureUtil.toSpriteId(SPECIAL_DEFAULT_ID);
 
 	protected static final int DIRECTION_AMOUNT = Direction.values().length;
 
 	protected Properties properties;
-	protected Identifier resourceId;
+	protected ResourceLocation resourceId;
 	protected String packId;
 	protected int packPriority;
 	protected ResourceManager resourceManager;
 	protected String method;
 
 	@Nullable
-	protected Set<Identifier> matchTilesSet;
+	protected Set<ResourceLocation> matchTilesSet;
 	@Nullable
 	protected Predicate<BlockState> matchBlocksPredicate;
-	protected List<Identifier> tiles = Collections.emptyList();
+	protected List<ResourceLocation> tiles = Collections.emptyList();
 	@Nullable
 	protected EnumSet<Direction> faces;
 	@Nullable
@@ -75,20 +75,20 @@ public class BaseCtmProperties implements CtmProperties {
 	protected boolean prioritized = false;
 
 	protected boolean valid = true;
-	protected Set<SpriteIdentifier> textureDependencies;
-	protected List<SpriteIdentifier> spriteIds;
+	protected Set<Material> textureDependencies;
+	protected List<Material> spriteIds;
 
-	public BaseCtmProperties(Properties properties, Identifier resourceId, ResourcePack pack, int packPriority, ResourceManager resourceManager, String method) {
+	public BaseCtmProperties(Properties properties, ResourceLocation resourceId, PackResources pack, int packPriority, ResourceManager resourceManager, String method) {
 		this.properties = properties;
 		this.resourceId = resourceId;
-		this.packId = pack.getId();
+		this.packId = pack.packId();
 		this.packPriority = packPriority;
 		this.resourceManager = resourceManager;
 		this.method = method;
 	}
 
 	@Override
-	public Set<SpriteIdentifier> getTextureDependencies() {
+	public Set<Material> getTextureDependencies() {
 		if (textureDependencies == null) {
 			resolveTiles();
 		}
@@ -153,12 +153,12 @@ public class BaseCtmProperties implements CtmProperties {
 		if (matchBlocksPredicate == null) {
 			if (baseName.startsWith("block_")) {
 				try {
-					Identifier id = Identifier.of(baseName.substring(6));
-					if (Registries.BLOCK.containsId(id)) {
-						Block block = Registries.BLOCK.get(id);
+					ResourceLocation id = ResourceLocation.parse(baseName.substring(6));
+					if (BuiltInRegistries.BLOCK.containsKey(id)) {
+						Block block = BuiltInRegistries.BLOCK.get(id);
 						matchBlocksPredicate = state -> state.getBlock() == block;
 					}
-				} catch (InvalidIdentifierException e) {
+				} catch (ResourceLocationException e) {
 					//
 				}
 			}
@@ -183,7 +183,7 @@ public class BaseCtmProperties implements CtmProperties {
 		String[] tileStrs = tilesStr.trim().split("[ ,]");
 		if (tileStrs.length != 0) {
 			String basePath = FilenameUtils.getPath(resourceId.getPath());
-			ImmutableList.Builder<Identifier> listBuilder = ImmutableList.builder();
+			ImmutableList.Builder<ResourceLocation> listBuilder = ImmutableList.builder();
 
 			for (int i = 0; i < tileStrs.length; i++) {
 				String tileStr = tileStrs[i];
@@ -210,7 +210,7 @@ public class BaseCtmProperties implements CtmProperties {
 									for (int tile = min; tile <= max; tile++) {
 										listBuilder.add(resourceId.withPath(basePath + tile + ".png"));
 									}
-								} catch (InvalidIdentifierException e) {
+								} catch (ResourceLocationException e) {
 									ContinuityClient.LOGGER.warn("Invalid 'tiles' element '" + tileStr + "' at index " + i + " in file '" + resourceId + "' in pack '" + packId + "'", e);
 								}
 							} else {
@@ -265,12 +265,12 @@ public class BaseCtmProperties implements CtmProperties {
 						}
 
 						if (namespace == null) {
-							namespace = Identifier.DEFAULT_NAMESPACE;
+							namespace = ResourceLocation.DEFAULT_NAMESPACE;
 						}
 
 						try {
-							listBuilder.add(Identifier.of(namespace, path));
-						} catch (InvalidIdentifierException e) {
+							listBuilder.add(ResourceLocation.fromNamespaceAndPath(namespace, path));
+						} catch (ResourceLocationException e) {
 							ContinuityClient.LOGGER.warn("Invalid 'tiles' element '" + tileStr + "' at index " + i + " in file '" + resourceId + "' in pack '" + packId + "'", e);
 						}
 					}
@@ -305,7 +305,7 @@ public class BaseCtmProperties implements CtmProperties {
 				} else if (faceStr1.equals("TOP")) {
 					faces.add(Direction.UP);
 				} else if (faceStr1.equals("SIDES")) {
-					Iterators.addAll(faces, Direction.Type.HORIZONTAL.iterator());
+					Iterators.addAll(faces, Direction.Plane.HORIZONTAL.iterator());
 				} else if (faceStr1.equals("ALL")) {
 					faces = null;
 					return;
@@ -353,9 +353,9 @@ public class BaseCtmProperties implements CtmProperties {
 					}
 
 					try {
-						Identifier biomeId = Identifier.of(biomeStr.toLowerCase(Locale.ROOT));
+						ResourceLocation biomeId = ResourceLocation.parse(biomeStr.toLowerCase(Locale.ROOT));
 						biomeHolderSet.add(BiomeHolderManager.getOrCreateHolder(biomeId));
-					} catch (InvalidIdentifierException e) {
+					} catch (ResourceLocationException e) {
 						ContinuityClient.LOGGER.warn("Invalid 'biomes' element '" + biomeStr + "' at index " + i + " in file '" + resourceId + "' in pack '" + packId + "'", e);
 					}
 				}
@@ -571,7 +571,7 @@ public class BaseCtmProperties implements CtmProperties {
 
 		String[] conditionStrs = conditionsStr.trim().split("\\|");
 		if (conditionStrs.length != 0) {
-			DefaultResourcePack defaultPack = MinecraftClient.getInstance().getDefaultResourcePack();
+			VanillaPackResources defaultPack = Minecraft.getInstance().getVanillaPackResources();
 
 			for (int i = 0; i < conditionStrs.length; i++) {
 				String conditionStr = conditionStrs[i];
@@ -582,10 +582,10 @@ public class BaseCtmProperties implements CtmProperties {
 				String[] parts = conditionStr.split("@", 2);
 				if (parts.length != 0) {
 					String resourceStr = parts[0];
-					Identifier resourceId;
+					ResourceLocation resourceId;
 					try {
-						resourceId = Identifier.of(resourceStr);
-					} catch (InvalidIdentifierException e) {
+						resourceId = ResourceLocation.parse(resourceStr);
+					} catch (ResourceLocationException e) {
 						ContinuityClient.LOGGER.warn("Invalid resource '" + resourceStr + "' in 'resourceCondition' element '" + conditionStr + "' at index " + i + " in file '" + this.resourceId + "' in pack '" + packId + "'", e);
 						continue;
 					}
@@ -599,13 +599,13 @@ public class BaseCtmProperties implements CtmProperties {
 
 					if (packStr == null || packStr.equals("default")) {
 						Optional<Resource> optionalResource = resourceManager.getResource(resourceId);
-						if (optionalResource.isPresent() && optionalResource.get().getPack() != defaultPack) {
+						if (optionalResource.isPresent() && optionalResource.get().source() != defaultPack) {
 							valid = false;
 							break;
 						}
 					} else if (packStr.equals("programmer_art")) {
 						Optional<Resource> optionalResource = resourceManager.getResource(resourceId);
-						if (optionalResource.isPresent() && !optionalResource.get().getPack().getId().equals("programmer_art")) {
+						if (optionalResource.isPresent() && !optionalResource.get().source().packId().equals("programmer_art")) {
 							valid = false;
 							break;
 						}
@@ -628,8 +628,8 @@ public class BaseCtmProperties implements CtmProperties {
 		spriteIds = new ObjectArrayList<>();
 		ResourceRedirectHandler redirectHandler = ResourceRedirectHandler.get(resourceManager);
 
-		for (Identifier tile : tiles) {
-			SpriteIdentifier spriteId;
+		for (ResourceLocation tile : tiles) {
+			Material spriteId;
 			if (tile.equals(SPECIAL_SKIP_ID)) {
 				spriteId = SPECIAL_SKIP_SPRITE_ID;
 			} else if (tile.equals(SPECIAL_DEFAULT_ID)) {
@@ -643,12 +643,12 @@ public class BaseCtmProperties implements CtmProperties {
 						path = path.substring(0, path.length() - 4);
 					}
 
-					spriteId = TextureUtil.toSpriteId(Identifier.of(namespace, path));
+					spriteId = TextureUtil.toSpriteId(ResourceLocation.fromNamespaceAndPath(namespace, path));
 					textureDependencies.add(spriteId);
 				} else if (redirectHandler != null) {
 					path = redirectHandler.getSourceSpritePath(path);
 
-					spriteId = TextureUtil.toSpriteId(Identifier.of(namespace, path));
+					spriteId = TextureUtil.toSpriteId(ResourceLocation.fromNamespaceAndPath(namespace, path));
 					textureDependencies.add(spriteId);
 				} else {
 					spriteId = TextureUtil.MISSING_SPRITE_ID;
@@ -662,7 +662,7 @@ public class BaseCtmProperties implements CtmProperties {
 		return properties;
 	}
 
-	public Identifier getResourceId() {
+	public ResourceLocation getResourceId() {
 		return resourceId;
 	}
 
@@ -679,7 +679,7 @@ public class BaseCtmProperties implements CtmProperties {
 	}
 
 	@Nullable
-	public Set<Identifier> getMatchTilesSet() {
+	public Set<ResourceLocation> getMatchTilesSet() {
 		return matchTilesSet;
 	}
 
@@ -716,7 +716,7 @@ public class BaseCtmProperties implements CtmProperties {
 		return prioritized;
 	}
 
-	public List<SpriteIdentifier> getSpriteIds() {
+	public List<Material> getSpriteIds() {
 		if (spriteIds == null) {
 			resolveTiles();
 		}

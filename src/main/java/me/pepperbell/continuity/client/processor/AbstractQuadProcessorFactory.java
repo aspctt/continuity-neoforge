@@ -7,14 +7,14 @@ import me.pepperbell.continuity.api.client.QuadProcessor;
 import me.pepperbell.continuity.client.ContinuityClient;
 import me.pepperbell.continuity.client.properties.BaseCtmProperties;
 import me.pepperbell.continuity.client.util.TextureUtil;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.SpriteIdentifier;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
 
 public abstract class AbstractQuadProcessorFactory<T extends BaseCtmProperties> implements QuadProcessor.Factory<T> {
 	@Override
-	public QuadProcessor createProcessor(T properties, Function<SpriteIdentifier, Sprite> textureGetter) {
+	public QuadProcessor createProcessor(T properties, Function<Material, TextureAtlasSprite> textureGetter) {
 		int textureAmount = getTextureAmount(properties);
-		List<SpriteIdentifier> spriteIds = properties.getSpriteIds();
+		List<Material> spriteIds = properties.getSpriteIds();
 		int provided = spriteIds.size();
 		int max = provided;
 
@@ -23,12 +23,12 @@ public abstract class AbstractQuadProcessorFactory<T extends BaseCtmProperties> 
 			max = textureAmount;
 		}
 
-		Sprite[] sprites = new Sprite[textureAmount];
-		Sprite missingSprite = textureGetter.apply(TextureUtil.MISSING_SPRITE_ID);
+		TextureAtlasSprite[] sprites = new TextureAtlasSprite[textureAmount];
+		TextureAtlasSprite missingSprite = textureGetter.apply(TextureUtil.MISSING_SPRITE_ID);
 		boolean supportsNullSprites = supportsNullSprites(properties);
 		for (int i = 0; i < max; i++) {
-			Sprite sprite;
-			SpriteIdentifier spriteId = spriteIds.get(i);
+			TextureAtlasSprite sprite;
+			Material spriteId = spriteIds.get(i);
 			if (spriteId.equals(BaseCtmProperties.SPECIAL_SKIP_SPRITE_ID)) {
 				sprite = missingSprite;
 			} else if (spriteId.equals(BaseCtmProperties.SPECIAL_DEFAULT_SPRITE_ID)) {
@@ -49,7 +49,7 @@ public abstract class AbstractQuadProcessorFactory<T extends BaseCtmProperties> 
 		return createProcessor(properties, sprites);
 	}
 
-	public abstract QuadProcessor createProcessor(T properties, Sprite[] sprites);
+	public abstract QuadProcessor createProcessor(T properties, TextureAtlasSprite[] sprites);
 
 	public abstract int getTextureAmount(T properties);
 

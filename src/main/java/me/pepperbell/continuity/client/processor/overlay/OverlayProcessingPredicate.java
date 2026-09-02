@@ -10,13 +10,13 @@ import me.pepperbell.continuity.api.client.ProcessingDataProvider;
 import me.pepperbell.continuity.client.processor.BaseProcessingPredicate;
 import me.pepperbell.continuity.client.properties.BaseCtmProperties;
 import me.pepperbell.continuity.client.util.QuadUtil;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.biome.Biome;
+import me.pepperbell.continuity.client.render.QuadView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.biome.Biome;
 
 public class OverlayProcessingPredicate extends BaseProcessingPredicate {
 	public OverlayProcessingPredicate(@Nullable EnumSet<Direction> faces, @Nullable Predicate<Biome> biomePredicate, @Nullable IntPredicate heightPredicate, @Nullable Predicate<String> blockEntityNamePredicate) {
@@ -24,7 +24,7 @@ public class OverlayProcessingPredicate extends BaseProcessingPredicate {
 	}
 
 	@Override
-	public boolean shouldProcessQuad(QuadView quad, Sprite sprite, BlockRenderView blockView, BlockState appearanceState, BlockState state, BlockPos pos, ProcessingDataProvider dataProvider) {
+	public boolean shouldProcessQuad(QuadView quad, TextureAtlasSprite sprite, BlockAndTintGetter blockView, BlockState appearanceState, BlockState state, BlockPos pos, ProcessingDataProvider dataProvider) {
 		if (!super.shouldProcessQuad(quad, sprite, blockView, appearanceState, state, pos, dataProvider)) {
 			return false;
 		}

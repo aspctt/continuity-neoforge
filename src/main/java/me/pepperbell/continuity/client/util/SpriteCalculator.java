@@ -6,17 +6,17 @@ import java.util.concurrent.locks.StampedLock;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockModels;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 
 public final class SpriteCalculator {
-	private static final BlockModels MODELS = MinecraftClient.getInstance().getBakedModelManager().getBlockModels();
+	private static final BlockModelShaper MODELS = Minecraft.getInstance().getModelManager().getBlockModelShaper();
 
 	private static final EnumMap<Direction, SpriteCache> SPRITE_CACHES = new EnumMap<>(Direction.class);
 	static {
@@ -25,12 +25,12 @@ public final class SpriteCalculator {
 		}
 	}
 
-	public static Sprite getSprite(BlockState state, Direction face) {
+	public static TextureAtlasSprite getSprite(BlockState state, Direction face) {
 		return SPRITE_CACHES.get(face).getSprite(state);
 	}
 
-	public static Sprite calculateSprite(BlockState state, Direction face, Supplier<Random> randomSupplier) {
-		BakedModel model = MODELS.getModel(state);
+	public static TextureAtlasSprite calculateSprite(BlockState state, Direction face, Supplier<RandomSource> randomSupplier) {
+		BakedModel model = MODELS.getBlockModel(state);
 		try {
 			List<BakedQuad> quads = model.getQuads(state, face, randomSupplier.get());
 			if (!quads.isEmpty()) {
@@ -41,7 +41,7 @@ public final class SpriteCalculator {
 				int amount = quads.size();
 				for (int i = 0; i < amount; i++) {
 					BakedQuad quad = quads.get(i);
-					if (quad.getFace() == face) {
+					if (quad.getDirection() == face) {
 						return quad.getSprite();
 					}
 				}
@@ -49,7 +49,7 @@ public final class SpriteCalculator {
 		} catch (Exception e) {
 			//
 		}
-		return model.getParticleSprite();
+		return model.getParticleIcon();
 	}
 
 	public static void clearCache() {
@@ -60,12 +60,12 @@ public final class SpriteCalculator {
 
 	private static class SpriteCache {
 		private final Direction face;
-		private final Reference2ReferenceOpenHashMap<BlockState, Sprite> sprites = new Reference2ReferenceOpenHashMap<>();
-		private final Supplier<Random> randomSupplier = new Supplier<>() {
-			private final Random random = Random.create();
+		private final Reference2ReferenceOpenHashMap<BlockState, TextureAtlasSprite> sprites = new Reference2ReferenceOpenHashMap<>();
+		private final Supplier<RandomSource> randomSupplier = new Supplier<>() {
+			private final RandomSource random = RandomSource.create();
 
 			@Override
-			public Random get() {
+			public RandomSource get() {
 				// Use item rendering seed for consistency
 				random.setSeed(42L);
 				return random;
@@ -77,8 +77,8 @@ public final class SpriteCalculator {
 			this.face = face;
 		}
 
-		public Sprite getSprite(BlockState state) {
-			Sprite sprite;
+		public TextureAtlasSprite getSprite(BlockState state) {
+			TextureAtlasSprite sprite;
 
 			long optimisticReadStamp = lock.tryOptimisticRead();
 			if (optimisticReadStamp != 0L) {

@@ -37,36 +37,65 @@ import me.pepperbell.continuity.client.properties.overlay.RandomOverlayCtmProper
 import me.pepperbell.continuity.client.properties.overlay.RepeatOverlayCtmProperties;
 import me.pepperbell.continuity.client.properties.overlay.StandardOverlayCtmProperties;
 import me.pepperbell.continuity.client.resource.CustomBlockLayers;
-import me.pepperbell.continuity.client.resource.ModelWrappingHandler;
+import me.pepperbell.continuity.client.resource.ModelReloadHandler;
 import me.pepperbell.continuity.client.util.RenderUtil;
 import me.pepperbell.continuity.client.util.biome.BiomeHolderManager;
 import me.pepperbell.continuity.impl.client.ProcessingDataKeyRegistryImpl;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import me.pepperbell.continuity.client.config.ContinuityConfig;
+import me.pepperbell.continuity.client.config.ContinuityConfigScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
 
-public class ContinuityClient implements ClientModInitializer {
+@Mod(value = ContinuityClient.ID, dist = Dist.CLIENT)
+public class ContinuityClient {
 	public static final String ID = "continuity";
 	public static final String NAME = "Continuity";
 	public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
 
-	@Override
-	public void onInitializeClient() {
-		ProcessingDataKeyRegistryImpl.INSTANCE.init();
+	public ContinuityClient(IEventBus modBus, ModContainer modContainer) {
+		ContinuityConfig.INSTANCE.load();
+
+		ProcessingDataKeyRegistryImpl.INSTANCE.init(modBus);
 		BiomeHolderManager.init();
 		ProcessingDataKeys.init();
-		ModelWrappingHandler.init();
-		RenderUtil.ReloadListener.init();
-		CustomBlockLayers.ReloadListener.init();
+		ModelReloadHandler.init(modBus);
+		CustomBlockLayers.ReloadListener.init(modBus);
 
-		FabricLoader.getInstance().getModContainer(ID).ifPresent(container -> {
-			ResourceManagerHelper.registerBuiltinResourcePack(asId("default"), container, Text.translatable("resourcePack.continuity.default.name"), ResourcePackActivationType.NORMAL);
-			ResourceManagerHelper.registerBuiltinResourcePack(asId("glass_pane_culling_fix"), container, Text.translatable("resourcePack.continuity.glass_pane_culling_fix.name"), ResourcePackActivationType.NORMAL);
-		});
+		modBus.addListener(ContinuityClient::onAddPackFinders);
+		modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> new ContinuityConfigScreen(parent));
 
+		registerLoaders();
+	}
+
+	private static void onAddPackFinders(AddPackFindersEvent event) {
+		if (event.getPackType() != PackType.CLIENT_RESOURCES) {
+			return;
+		}
+		addBuiltinPack(event, "default");
+		addBuiltinPack(event, "glass_pane_culling_fix");
+	}
+
+	private static void addBuiltinPack(AddPackFindersEvent event, String name) {
+		event.addPackFinders(
+				asId("resourcepacks/" + name),
+				PackType.CLIENT_RESOURCES,
+				Component.translatable("resourcePack.continuity." + name + ".name"),
+				PackSource.BUILT_IN,
+				false,
+				Pack.Position.TOP
+		);
+	}
+
+	private static void registerLoaders() {
 		CtmLoaderRegistry registry = CtmLoaderRegistry.get();
 		CtmLoader<?> loader;
 
@@ -267,7 +296,7 @@ public class ContinuityClient implements ClientModInitializer {
 		};
 	}
 
-	public static Identifier asId(String path) {
-		return Identifier.of(ID, path);
+	public static ResourceLocation asId(String path) {
+		return ResourceLocation.fromNamespaceAndPath(ID, path);
 	}
 }

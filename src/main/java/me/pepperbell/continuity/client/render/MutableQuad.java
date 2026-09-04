@@ -5,6 +5,8 @@ import java.util.Arrays;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.LightTexture;
+//? if <1.21.5
+import me.pepperbell.continuity.client.model.bakedmodel.EmissiveBakedQuad;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
@@ -307,15 +309,26 @@ public class MutableQuad implements MutableQuadView {
 
 	@Override
 	public MutableQuad fromVanilla(BakedQuad quad, @Nullable Direction cullFace) {
+		//? if <1.21.5 {
 		System.arraycopy(quad.getVertices(), 0, data, 0, QUAD_STRIDE);
 		sprite = quad.getSprite();
 		colorIndex = quad.getTintIndex();
 		lightFace = quad.getDirection();
 		nominalFace = quad.getDirection();
+		//?} else {
+		/*System.arraycopy(quad.vertices(), 0, data, 0, QUAD_STRIDE);
+		sprite = quad.sprite();
+		colorIndex = quad.tintIndex();
+		lightFace = quad.direction();
+		nominalFace = quad.direction();
+		*///?}
 		this.cullFace = cullFace;
 		// The blend mode stays DEFAULT so the quad lands back in whichever render type it came from, even if that is
 		// a modded chunk layer this abstraction has no name for.
+		//? if <1.21.5 {
 		material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.isShade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
+		//?} else
+		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.shade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);*/
 		tag = 0;
 		dirty = false;
 		return this;
@@ -339,9 +352,19 @@ public class MutableQuad implements MutableQuadView {
 		// A baked quad can only force ambient occlusion off; forcing it on is a model-wide decision on NeoForge.
 		boolean hasAmbientOcclusion = material.ambientOcclusion() != TriState.FALSE;
 
-		//? if >=1.21.2 {
-		/*int lightEmission = material.emissive() ? 15 : 0;
+		//? if >=1.21.2 && <1.21.5 {
+		/*int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;
 		*///?}
+		//? if >=1.21.5 {
+		/*if (material.emissive()) {
+			for (int i = 0; i < VERTEX_COUNT; i++) {
+				vertices[i * VERTEX_STRIDE + OFFSET_LIGHTMAP] = LightTexture.FULL_BRIGHT;
+			}
+			return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, EmissiveQuads.EMISSIVE_LIGHT, hasAmbientOcclusion);
+		}
+		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);
+		*///?}
+		//? if <1.21.5 {
 		if (material.emissive()) {
 			// Vanilla block rendering overwrites the baked light, so the marker type is what actually drives the
 			// full-bright substitution. Writing it into the vertex data as well costs nothing and means any renderer
@@ -358,6 +381,7 @@ public class MutableQuad implements MutableQuadView {
 		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, hasAmbientOcclusion);
 		//?} else
 		/*return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);*/
+		//?}
 	}
 
 	private static float unpackNormalComponent(int packed, int shift) {

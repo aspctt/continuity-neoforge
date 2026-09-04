@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.Direction;
+//? if <1.21.5
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 
 /**
@@ -80,8 +81,11 @@ public final class QuadCollector extends AbstractQuadEmitter {
 	 * {@return everything collected so far, and resets this collector}
 	 */
 	public QuadCollection build() {
+		//? if <1.21.5 {
 		ChunkRenderTypeSet renderTypes = ChunkRenderTypeSet.of(byRenderType.keySet().toArray(RenderType[]::new));
 		QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byRenderType), all.clone(), renderTypes);
+		//?} else
+		/*QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byRenderType), all.clone());*/
 		reset();
 		return collection;
 	}

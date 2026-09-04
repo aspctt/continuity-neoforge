@@ -47,15 +47,19 @@ against several Minecraft versions. Each target is a subproject under `versions/
 
 Declared targets and where they stand:
 
-| Target | NeoForge | Loads and reads packs | Rendering confirmed |
-|---|---|---|---|
-| 1.21.1 | 21.1.249 | yes | not yet |
-| 1.21.3 | 21.3.97 | yes | not yet |
-| 1.21.4 | 21.4.157 | yes | not yet |
+| Target | NeoForge | Model API | Loads and reads packs | Rendering confirmed |
+|---|---|---|---|---|
+| 1.21.1 | 21.1.249 | baked model | yes | not yet |
+| 1.21.3 | 21.3.97 | baked model | yes | not yet |
+| 1.21.4 | 21.4.157 | baked model | yes | not yet |
+| 1.21.5 | 21.5.98 | block state model | yes | not yet |
 
-All three load with every mixin applying, register the built-in packs, and parse the Default Connected Textures
+All four load with every mixin applying, register the built-in packs, and parse the Default Connected Textures
 pack into the same 42 quad processors with no errors. None has been looked at in game, so the rendering itself
-is unverified on all of them, not just on 1.21.1.
+is unverified on all of them.
+
+One gap specific to 1.21.5: emissive textures apply to blocks but not to items. Item models became a separate
+system in 1.21.4 and nothing wraps them yet on that band.
 
 ### Where the version bands fall
 
@@ -67,14 +71,17 @@ exactly the same version. That splits the range into three bands, not one gradie
 | Band | Versions | Model API | State |
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
-| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | needs a second model layer |
+| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | 1.21.5 working, later versions not yet declared |
 | C | 26.1 - 26.2 | `BlockStateModel`, further reworked | needs a third |
 
-Within a band the differences are small enough for `//?` directives. Across one they are not: band B needs its
-own model layer, which belongs in a version-specific source directory rather than in comment blocks that would
-interleave two unrelated programs in the same file. `versions/1.21.5/gradle.properties` is prepared for
-whenever that work happens, but the version is deliberately not declared in `settings.gradle.kts` yet, so the
-build stays green.
+Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has
+its own model layer under `client/model/`: `bakedmodel` for band A, `blockstatemodel` for band B. Only the
+package matching the target is compiled. They sit under `src/main/java` rather than in separate source roots
+because that is the only tree Stonecutter preprocesses.
+
+Band B is the simpler of the two. NeoForge hands the level and position straight to `collectParts`, so results
+no longer have to be routed through model data, and a render type belongs to a part rather than needing a set
+declared up front.
 
 Two version differences are worth knowing about when adding further targets. `BakedQuad` gained a light
 emission argument in 1.21.2, and several methods the mixins target changed signature or became static across

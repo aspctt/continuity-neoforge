@@ -11,6 +11,7 @@ import me.pepperbell.continuity.client.resource.CustomBlockLayers;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.state.BlockState;
+//? if <1.21.5
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 
 /**
@@ -22,6 +23,7 @@ import net.neoforged.neoforge.client.ChunkRenderTypeSet;
  */
 @Mixin(ItemBlockRenderTypes.class)
 abstract class ItemBlockRenderTypesMixin {
+	//? if <1.21.5 {
 	@Inject(method = "getRenderLayers(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/neoforged/neoforge/client/ChunkRenderTypeSet;", at = @At("HEAD"), cancellable = true, remap = false)
 	private static void continuity$onHeadGetRenderLayers(BlockState state, CallbackInfoReturnable<ChunkRenderTypeSet> cir) {
 		RenderType layer = continuity$getCustomLayer(state);
@@ -29,6 +31,7 @@ abstract class ItemBlockRenderTypesMixin {
 			cir.setReturnValue(ChunkRenderTypeSet.of(layer));
 		}
 	}
+	//?}
 
 	@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/RenderType;", at = @At("HEAD"), cancellable = true)
 	private static void continuity$onHeadGetChunkRenderType(BlockState state, CallbackInfoReturnable<RenderType> cir) {

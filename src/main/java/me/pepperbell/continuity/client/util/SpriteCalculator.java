@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockModelShaper;
+//? if <1.21.5
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -30,26 +31,46 @@ public final class SpriteCalculator {
 	}
 
 	public static TextureAtlasSprite calculateSprite(BlockState state, Direction face, Supplier<RandomSource> randomSupplier) {
+		//? if <1.21.5 {
 		BakedModel model = MODELS.getBlockModel(state);
+		//?} else
+		/*net.minecraft.client.renderer.block.model.BlockStateModel model = MODELS.getBlockModel(state);*/
 		try {
+			//? if <1.21.5 {
 			List<BakedQuad> quads = model.getQuads(state, face, randomSupplier.get());
+			//?} else
+			/*List<BakedQuad> quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), face);*/
 			if (!quads.isEmpty()) {
+				//? if <1.21.5 {
 				return quads.get(0).getSprite();
+				//?} else
+				/*return quads.get(0).sprite();*/
 			}
+			//? if <1.21.5 {
 			quads = model.getQuads(state, null, randomSupplier.get());
+			//?} else
+			/*quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), null);*/
 			if (!quads.isEmpty()) {
 				int amount = quads.size();
 				for (int i = 0; i < amount; i++) {
 					BakedQuad quad = quads.get(i);
+					//? if <1.21.5 {
 					if (quad.getDirection() == face) {
 						return quad.getSprite();
+					//?} else {
+					/*if (quad.direction() == face) {
+						return quad.sprite();
+					*///?}
 					}
 				}
 			}
 		} catch (Exception e) {
 			//
 		}
+		//? if <1.21.5 {
 		return model.getParticleIcon();
+		//?} else
+		/*return model.particleIcon();*/
 	}
 
 	public static void clearCache() {

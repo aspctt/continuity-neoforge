@@ -1,4 +1,4 @@
-package me.pepperbell.continuity.client.render;
+package me.pepperbell.continuity.client.model.bakedmodel;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -21,7 +21,4 @@ public class EmissiveBakedQuad extends BakedQuad {
 	}
 	*///?}
 
-	public static boolean isEmissive(BakedQuad quad) {
-		return quad instanceof EmissiveBakedQuad;
-	}
 }

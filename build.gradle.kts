@@ -82,6 +82,13 @@ sourceSets.main.get().java.exclude(
     if (usesBlockStateModel) "**/model/bakedmodel/**" else "**/model/blockstatemodel/**"
 )
 
+// NeoForge dropped its experimental light pipeline along with the model data it fed, so the mixin that covered
+// it has no target from 1.21.5 and is left out of both the compile and the mixin config.
+if (usesBlockStateModel) {
+    sourceSets.main.get().java.exclude("**/mixin/QuadLighterMixin.java")
+}
+val lightingMixin = if (usesBlockStateModel) "" else ",\n    \"QuadLighterMixin\""
+
 dependencies {
 }
 
@@ -100,6 +107,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_authors" to prop("mod_authors"),
         "mod_description" to prop("mod_description"),
         "resource_pack_format" to prop("resource_pack_format"),
+        "lighting_mixin" to lightingMixin,
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

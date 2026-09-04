@@ -1,4 +1,4 @@
-package me.pepperbell.continuity.client.resource;
+package me.pepperbell.continuity.client.model.bakedmodel;
 
 import java.util.Map;
 
@@ -7,8 +7,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.ImmutableMap;
 
-import me.pepperbell.continuity.client.model.bakedmodel.CtmBakedModel;
-import me.pepperbell.continuity.client.model.bakedmodel.EmissiveBakedModel;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 //? if <1.21.2 {
@@ -24,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Wraps baked models so that connected and emissive textures apply to them.
  *
- * <p>{@link ModelReloadHandler} drives this from the model baking event, which fires after every model is baked but
+ * <p>{@code ModelReloadHandler} drives this from the model baking event, which fires after every model is baked but
  * before the block state to model cache is built, so a wrapper put in place here is what the world actually renders.
  * It runs at the lowest priority so that other mods have already applied their own wrappers and ours sits outermost.
  */

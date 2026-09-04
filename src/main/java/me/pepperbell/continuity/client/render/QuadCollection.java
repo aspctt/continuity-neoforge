@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.Direction;
+//? if <1.21.5
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 
 /**
@@ -25,12 +26,27 @@ public final class QuadCollection {
 
 	private final Map<RenderType, List<BakedQuad>[]> byRenderType;
 	private final List<BakedQuad>[] all;
+	//? if <1.21.5
 	private final ChunkRenderTypeSet renderTypes;
 
+	//? if <1.21.5 {
 	QuadCollection(Map<RenderType, List<BakedQuad>[]> byRenderType, List<BakedQuad>[] all, ChunkRenderTypeSet renderTypes) {
 		this.byRenderType = byRenderType;
 		this.all = all;
 		this.renderTypes = renderTypes;
+	}
+	//?} else {
+	/*QuadCollection(Map<RenderType, List<BakedQuad>[]> byRenderType, List<BakedQuad>[] all) {
+		this.byRenderType = byRenderType;
+		this.all = all;
+	}
+	*///?}
+
+	/**
+	 * {@return the quads grouped by the render type they belong to}
+	 */
+	public Map<RenderType, List<BakedQuad>[]> byRenderType() {
+		return byRenderType;
 	}
 
 	public static int bucketIndex(@Nullable Direction cullFace) {
@@ -52,7 +68,9 @@ public final class QuadCollection {
 		return quads == null ? EMPTY : quads;
 	}
 
+	//? if <1.21.5 {
 	public ChunkRenderTypeSet getRenderTypes() {
 		return renderTypes;
 	}
+	//?}
 }

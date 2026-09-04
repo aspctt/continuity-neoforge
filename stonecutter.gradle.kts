@@ -17,5 +17,12 @@ stonecutter parameters {
             replace("biomeRegistry.get(", "biomeRegistry.getValue(")
             replace(".registryOrThrow(", ".lookupOrThrow(")
         }
+
+        string(current.parsed >= "1.21.5") {
+            // TriState moved out of NeoForge and into vanilla.
+            replace("import net.neoforged.neoforge.common.util.TriState;", "import net.minecraft.util.TriState;")
+            // BakedQuad became a record in 1.21.5, but its accessor names collide with this mod's own quad
+            // API, so those call sites use directives rather than a replacement that would rewrite both.
+        }
     }
 }

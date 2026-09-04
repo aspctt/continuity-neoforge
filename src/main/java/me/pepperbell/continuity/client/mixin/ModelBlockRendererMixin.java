@@ -8,7 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import me.pepperbell.continuity.client.render.EmissiveBakedQuad;
+import me.pepperbell.continuity.client.render.EmissiveQuads;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -29,7 +29,7 @@ abstract class ModelBlockRendererMixin {
 
 	@WrapOperation(method = "putQuadData", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;[FFFFF[IIZ)V"))
 	private void continuity$brightenEmissiveQuads(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float[] brightness, float red, float green, float blue, float alpha, int[] lightmap, int packedOverlay, boolean readExistingColor, Operation<Void> original) {
-		if (quad instanceof EmissiveBakedQuad) {
+		if (EmissiveQuads.isEmissive(quad)) {
 			brightness = CONTINUITY$FULL_BRIGHTNESS;
 			lightmap = CONTINUITY$FULL_BRIGHT_LIGHTMAP;
 		}

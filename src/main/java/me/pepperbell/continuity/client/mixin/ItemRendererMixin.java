@@ -8,7 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import me.pepperbell.continuity.client.render.EmissiveBakedQuad;
+import me.pepperbell.continuity.client.render.EmissiveQuads;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -23,7 +23,7 @@ abstract class ItemRendererMixin {
 	private void continuity$brightenEmissiveQuads(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor, Operation<Void> original) {
 	//?} else
 	/*private static void continuity$brightenEmissiveQuads(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor, Operation<Void> original) {*/
-		if (quad instanceof EmissiveBakedQuad) {
+		if (EmissiveQuads.isEmissive(quad)) {
 			packedLight = LightTexture.FULL_BRIGHT;
 		}
 		original.call(consumer, pose, quad, red, green, blue, alpha, packedLight, packedOverlay, readExistingColor);

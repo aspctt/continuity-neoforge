@@ -11,13 +11,12 @@
     "ModelBlockRendererMixin",
     "ModelManagerMixin",
     "MultiPackResourceManagerMixin",
-    "QuadLighterMixin",
     "ReloadableResourceManagerAccessor",
     "RenderChunkRegionAccessor",
     "ResourceLocationMixin",
     "SpriteLoaderMixin",
     "SpriteSourceListMixin",
-    "TextureAtlasSpriteMixin"
+    "TextureAtlasSpriteMixin"${lighting_mixin}
   ],
   "injectors": {
     "defaultRequire": 1

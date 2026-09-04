@@ -61,6 +61,22 @@ is unverified on all of them.
 One gap specific to 1.21.5: emissive textures apply to blocks but not to items. Item models became a separate
 system in 1.21.4 and nothing wraps them yet on that band.
 
+### Adding 1.21.6 and later
+
+Groundwork for these is in place: each has a `versions/` directory with its NeoForge version and pack format
+resolved, Parchment is optional so a target without it still builds, and the pack metadata template handles both
+the old single `pack_format` and the `min_format` / `max_format` pair that replaced it in 1.21.10. They are not
+declared in `settings.gradle.kts` yet, because each still needs source work:
+
+| Target | NeoForge | Remaining work |
+|---|---|---|
+| 1.21.6, 1.21.8 | 21.6.20-beta, 21.8.54 | chunk layers became `ChunkSectionLayer` rather than `RenderType`, which threads through the blend modes, the quad collection, the model parts and the custom block layers; `RenderChunkRegion` also moved |
+| 1.21.10 | 21.10.63 | the same, plus `AtlasSet` moved |
+| 1.21.11 | 21.11.45 | the same, plus `ResourceLocation` was renamed to `Identifier` and `RenderType` renamed again, which is mostly a replacement pass |
+
+None of these is another architectural break like 1.21.5 was. They are type changes rather than a new model API,
+so the band B model layer should carry across once the chunk layer type is threaded through.
+
 ### Where the version bands fall
 
 Minecraft replaced `BakedModel` with `BlockStateModel` in 1.21.5, and with it the whole basis this port stands

@@ -36,9 +36,13 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 neoForge {
     version = prop("neo_version")
 
-    parchment {
-        mappingsVersion = prop("parchment_mappings_version")
-        minecraftVersion = prop("parchment_minecraft_version")
+    // Parchment lags new Minecraft releases, so a target without it still builds; only the parameter names
+    // and javadoc are missing.
+    if (project.hasProperty("parchment_mappings_version")) {
+        parchment {
+            mappingsVersion = prop("parchment_mappings_version")
+            minecraftVersion = prop("parchment_minecraft_version")
+        }
     }
 
     // Access Transformers are automatically detected at
@@ -87,6 +91,16 @@ sourceSets.main.get().java.exclude(
 if (usesBlockStateModel) {
     sourceSets.main.get().java.exclude("**/mixin/QuadLighterMixin.java")
 }
+// 1.21.10 replaced the single pack format number with a supported range, so the field itself differs and not
+// just its value.
+val packFormatField = if (versionAtLeast("1.21.10")) {
+    val major = prop("resource_pack_format")
+    val minor = prop("resource_pack_format_minor")
+    "\"min_format\": $major," + System.lineSeparator() + "    \"max_format\": [$major, $minor],"
+} else {
+    "\"pack_format\": " + prop("resource_pack_format") + ","
+}
+
 val lightingMixin = if (usesBlockStateModel) "" else ",\n    \"QuadLighterMixin\""
 
 dependencies {
@@ -106,7 +120,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_version" to project.version.toString(),
         "mod_authors" to prop("mod_authors"),
         "mod_description" to prop("mod_description"),
-        "resource_pack_format" to prop("resource_pack_format"),
+        "pack_format_field" to packFormatField,
         "lighting_mixin" to lightingMixin,
     )
     inputs.properties(replaceProperties)

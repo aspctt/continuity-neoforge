@@ -1,6 +1,6 @@
 {
   "pack": {
-    "pack_format": ${resource_pack_format},
+    ${pack_format_field}
     "description": {
       "translate": "resourcePack.continuity.default.description"
     }

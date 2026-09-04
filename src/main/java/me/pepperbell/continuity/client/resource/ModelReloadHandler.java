@@ -133,7 +133,10 @@ public class ModelReloadHandler {
 
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(event.getTextureGetter());
 		if (wrappingHandler != null) {
+			//? if <1.21.4 {
 			wrappingHandler.wrapAll(event.getModels());
+			//?} else
+			/*wrappingHandler.wrapAll(event.getBakingResult().blockStateModels());*/
 		}
 	}
 

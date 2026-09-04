@@ -126,7 +126,10 @@ public class StandardOverlayQuadProcessor extends AbstractQuadProcessor {
 		BlockState otherAppearanceState = otherState.getAppearance(blockView, mutablePos, lightFace, state, pos);
 		if (appliesOverlay(otherAppearanceState, otherState, mutablePos, blockView, appearanceState, state, pos, lightFace, quadSprite)) {
 			mutablePos.move(lightFace);
+			//? if <1.21.2 {
 			return !blockView.getBlockState(mutablePos).isSolidRender(blockView, mutablePos);
+			//?} else
+			/*return !blockView.getBlockState(mutablePos).isSolidRender();*/
 		}
 		return false;
 	}
@@ -219,7 +222,10 @@ public class StandardOverlayQuadProcessor extends AbstractQuadProcessor {
 
 		mutablePos.setWithOffset(pos, directions[0]).move(lightFace);
 		BlockState appearanceState0;
+		//? if <1.21.2 {
 		if (!blockView.getBlockState(mutablePos).isSolidRender(blockView, mutablePos)) {
+		//?} else
+		/*if (!blockView.getBlockState(mutablePos).isSolidRender()) {*/
 			mutablePos.setWithOffset(pos, directions[0]);
 			BlockState state0 = blockView.getBlockState(mutablePos);
 			appearanceState0 = state0.getAppearance(blockView, mutablePos, lightFace, state, pos);
@@ -232,7 +238,10 @@ public class StandardOverlayQuadProcessor extends AbstractQuadProcessor {
 
 		mutablePos.setWithOffset(pos, directions[1]).move(lightFace);
 		BlockState appearanceState1;
+		//? if <1.21.2 {
 		if (!blockView.getBlockState(mutablePos).isSolidRender(blockView, mutablePos)) {
+		//?} else
+		/*if (!blockView.getBlockState(mutablePos).isSolidRender()) {*/
 			mutablePos.setWithOffset(pos, directions[1]);
 			BlockState state1 = blockView.getBlockState(mutablePos);
 			appearanceState1 = state1.getAppearance(blockView, mutablePos, lightFace, state, pos);
@@ -245,7 +254,10 @@ public class StandardOverlayQuadProcessor extends AbstractQuadProcessor {
 
 		mutablePos.setWithOffset(pos, directions[2]).move(lightFace);
 		BlockState appearanceState2;
+		//? if <1.21.2 {
 		if (!blockView.getBlockState(mutablePos).isSolidRender(blockView, mutablePos)) {
+		//?} else
+		/*if (!blockView.getBlockState(mutablePos).isSolidRender()) {*/
 			mutablePos.setWithOffset(pos, directions[2]);
 			BlockState state2 = blockView.getBlockState(mutablePos);
 			appearanceState2 = state2.getAppearance(blockView, mutablePos, lightFace, state, pos);
@@ -258,7 +270,10 @@ public class StandardOverlayQuadProcessor extends AbstractQuadProcessor {
 
 		mutablePos.setWithOffset(pos, directions[3]).move(lightFace);
 		BlockState appearanceState3;
+		//? if <1.21.2 {
 		if (!blockView.getBlockState(mutablePos).isSolidRender(blockView, mutablePos)) {
+		//?} else
+		/*if (!blockView.getBlockState(mutablePos).isSolidRender()) {*/
 			mutablePos.setWithOffset(pos, directions[3]);
 			BlockState state3 = blockView.getBlockState(mutablePos);
 			appearanceState3 = state3.getAppearance(blockView, mutablePos, lightFace, state, pos);

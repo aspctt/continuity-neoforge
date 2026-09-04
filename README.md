@@ -45,8 +45,22 @@ against several Minecraft versions. Each target is a subproject under `versions/
 ./gradlew :1.21.1:runClient     # run one, sharing the root run/ directory
 ```
 
-Only 1.21.1 is declared so far. Further targets get added as they are ported rather than declared up front
-and left broken, since the model API moves substantially across 1.21.x and is replaced outright in 26.x.
+Declared targets and where they stand:
+
+| Target | Compiles | Runs |
+|---|---|---|
+| 1.21.1 | yes | yes, verified in game |
+| 1.21.3 | yes | no, mixin signatures not yet adapted |
+| 1.21.4 | yes | no, mixin signatures not yet adapted |
+
+**Only the 1.21.1 jar is usable.** The other two compile because Java source differences are handled, but a
+mixin's target signature lives in an annotation string that the compiler never checks, and several of those
+signatures changed in 1.21.2. They fail at class load until each injection is adapted.
+
+There is also a design question outstanding for 1.21.3 and later. Minecraft relaxed its sprite path
+validation, which is the only reason `ResourceRedirectHandler` and its three supporting mixins exist. Upstream
+deleted that whole mechanism at 1.21.3 rather than porting it, and this fork should probably do the same
+instead of making it apply.
 
 ## Installation
 

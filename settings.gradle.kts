@@ -15,7 +15,7 @@ stonecutter {
     create(rootProject) {
         // Only the version the port is actually known to work on. Others get added as they are ported,
         // rather than declared up front and left broken.
-        versions("1.21.1")
+        versions("1.21.1", "1.21.3", "1.21.4")
         vcsVersion = "1.21.1"
     }
 }

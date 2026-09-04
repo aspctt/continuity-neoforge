@@ -11,7 +11,10 @@ import me.pepperbell.continuity.client.model.CtmBakedModel;
 import me.pepperbell.continuity.client.model.EmissiveBakedModel;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
+//? if <1.21.2 {
 import net.minecraft.client.resources.model.ModelBakery;
+//?} else
+/*import net.minecraft.client.resources.model.MissingBlockModel;*/
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -58,7 +61,12 @@ public class ModelWrappingHandler {
 	}
 
 	public BakedModel wrap(@Nullable BakedModel model, @Nullable ModelResourceLocation topLevelId) {
+		//? if <1.21.2 {
 		if (model == null || model.isCustomRenderer() || ModelBakery.MISSING_MODEL_VARIANT.equals(topLevelId)) {
+		//?} elif <1.21.4 {
+		/*if (model == null || model.isCustomRenderer() || MissingBlockModel.VARIANT.equals(topLevelId)) {
+		*///?} else
+		/*if (model == null || MissingBlockModel.VARIANT.equals(topLevelId)) {*/
 			return model;
 		}
 

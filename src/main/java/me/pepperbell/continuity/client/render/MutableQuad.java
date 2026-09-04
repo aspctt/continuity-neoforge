@@ -339,6 +339,9 @@ public class MutableQuad implements MutableQuadView {
 		// A baked quad can only force ambient occlusion off; forcing it on is a model-wide decision on NeoForge.
 		boolean hasAmbientOcclusion = material.ambientOcclusion() != TriState.FALSE;
 
+		//? if >=1.21.2 {
+		/*int lightEmission = material.emissive() ? 15 : 0;
+		*///?}
 		if (material.emissive()) {
 			// Vanilla block rendering overwrites the baked light, so the marker type is what actually drives the
 			// full-bright substitution. Writing it into the vertex data as well costs nothing and means any renderer
@@ -346,9 +349,15 @@ public class MutableQuad implements MutableQuadView {
 			for (int i = 0; i < VERTEX_COUNT; i++) {
 				vertices[i * VERTEX_STRIDE + OFFSET_LIGHTMAP] = LightTexture.FULL_BRIGHT;
 			}
+			//? if <1.21.2 {
 			return new EmissiveBakedQuad(vertices, colorIndex, lightFace, sprite, shade, hasAmbientOcclusion);
+			//?} else
+			/*return new EmissiveBakedQuad(vertices, colorIndex, lightFace, sprite, shade, lightEmission, hasAmbientOcclusion);*/
 		}
+		//? if <1.21.2 {
 		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, hasAmbientOcclusion);
+		//?} else
+		/*return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);*/
 	}
 
 	private static float unpackNormalComponent(int packed, int shift) {

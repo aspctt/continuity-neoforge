@@ -24,7 +24,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.neoforged.bus.api.IEventBus;
+//? if <1.21.4 {
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+//?} else
+/*import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;*/
 
 public final class CustomBlockLayers {
 	public static final ResourceLocation LOCATION = ResourceLocation.withDefaultNamespace("optifine/block.properties");
@@ -46,7 +49,10 @@ public final class CustomBlockLayers {
 	@Nullable
 	public static RenderType getLayer(BlockState state) {
 		if (!disableSolidCheck) {
+			//? if <1.21.2 {
 			if (state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) {
+			//?} else
+			/*if (state.isSolidRender()) {*/
 				return null;
 			}
 		}
@@ -101,11 +107,17 @@ public final class CustomBlockLayers {
 		private static final ReloadListener INSTANCE = new ReloadListener();
 
 		public static void init(IEventBus modBus) {
+			//? if <1.21.4 {
 			modBus.addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(INSTANCE));
+			//?} else
+			/*modBus.addListener(AddClientReloadListenersEvent.class, event -> event.addListener(ID, INSTANCE));*/
 		}
 
 		@Override
+		//? if <1.21.2 {
 		public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
+		//?} else
+		/*public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {*/
 			return CompletableFuture.supplyAsync(() -> manager, backgroundExecutor)
 					.thenCompose(barrier::wait)
 					.thenAcceptAsync(CustomBlockLayers::reload, gameExecutor);

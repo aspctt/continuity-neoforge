@@ -11,9 +11,15 @@ import net.minecraft.core.Direction;
  * {@code ModelBlockRendererMixin} and {@code ItemRendererMixin} whenever they encounter a quad of this type.
  */
 public class EmissiveBakedQuad extends BakedQuad {
+	//? if <1.21.2 {
 	public EmissiveBakedQuad(int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade, boolean hasAmbientOcclusion) {
 		super(vertices, tintIndex, direction, sprite, shade, hasAmbientOcclusion);
 	}
+	//?} else {
+	/*public EmissiveBakedQuad(int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade, int lightEmission, boolean hasAmbientOcclusion) {
+		super(vertices, tintIndex, direction, sprite, shade, lightEmission, hasAmbientOcclusion);
+	}
+	*///?}
 
 	public static boolean isEmissive(BakedQuad quad) {
 		return quad instanceof EmissiveBakedQuad;

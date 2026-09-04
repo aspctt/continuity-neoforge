@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import me.pepperbell.continuity.api.client.QuadProcessor;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
+import me.pepperbell.continuity.client.render.ForwardingBakedModel;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;
 import me.pepperbell.continuity.client.render.QuadCollector;
@@ -24,7 +25,6 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
@@ -36,7 +36,7 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  * and {@code getQuads} calls just read them back. Doing it this way means no thread local has to be smuggled past
  * {@code getQuads}, and it works under any chunk renderer that honours the NeoForge model pipeline.
  */
-public class CtmBakedModel extends BakedModelWrapper<BakedModel> {
+public class CtmBakedModel extends ForwardingBakedModel {
 	public static final int PASSES = 4;
 
 	/**
@@ -123,7 +123,10 @@ public class CtmBakedModel extends BakedModelWrapper<BakedModel> {
 
 					if (useManualCulling && cullFace != null) {
 						neighborPos.setWithOffset(pos, cullFace);
+						//? if <1.21.2 {
 						if (!Block.shouldRenderFace(state, level, pos, cullFace, neighborPos)) {
+						//?} else
+						/*if (!Block.shouldRenderFace(level, pos, state, level.getBlockState(neighborPos), cullFace)) {*/
 							continue;
 						}
 					}

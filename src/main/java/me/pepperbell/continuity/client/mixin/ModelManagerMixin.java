@@ -26,12 +26,15 @@ import net.minecraft.util.profiling.ProfilerFiller;
  */
 @Mixin(ModelManager.class)
 abstract class ModelManagerMixin {
-	@Inject(method = "reload(Lnet/minecraft/server/packs/resources/PreparableReloadListener$PreparationBarrier;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/util/profiling/ProfilerFiller;Ljava/util/concurrent/Executor;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"))
+	@Inject(method = "reload", at = @At("HEAD"))
+	//? if <1.21.2 {
 	private void continuity$onHeadReload(PreparableReloadListener.PreparationBarrier preparationBarrier, ResourceManager resourceManager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+	//?} else
+	/*private void continuity$onHeadReload(PreparableReloadListener.PreparationBarrier preparationBarrier, ResourceManager resourceManager, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {*/
 		ModelReloadHandler.beginReload(resourceManager, backgroundExecutor).setContext();
 	}
 
-	@Inject(method = "reload(Lnet/minecraft/server/packs/resources/PreparableReloadListener$PreparationBarrier;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/util/profiling/ProfilerFiller;Ljava/util/concurrent/Executor;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;", at = @At("RETURN"))
+	@Inject(method = "reload", at = @At("RETURN"))
 	private void continuity$onReturnReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
 		ModelReloadHandler handler = ModelReloadHandler.getCurrent();
 		if (handler != null) {

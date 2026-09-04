@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.pepperbell.continuity.api.client.EmissiveSpriteApi;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
 import me.pepperbell.continuity.client.render.BlendMode;
+import me.pepperbell.continuity.client.render.ForwardingBakedModel;
 import me.pepperbell.continuity.client.render.MaterialFinder;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;
@@ -26,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 import net.neoforged.neoforge.common.util.TriState;
@@ -37,7 +37,7 @@ import net.neoforged.neoforge.common.util.TriState;
  * <p>NeoForge carries no per-quad light override, so the copies are emitted as {@code EmissiveBakedQuad} and the light
  * value is forced when they reach the renderer.
  */
-public class EmissiveBakedModel extends BakedModelWrapper<BakedModel> {
+public class EmissiveBakedModel extends ForwardingBakedModel {
 	/**
 	 * Where the block quads for one position, emissive copies included, are handed to {@link #getQuads}.
 	 */

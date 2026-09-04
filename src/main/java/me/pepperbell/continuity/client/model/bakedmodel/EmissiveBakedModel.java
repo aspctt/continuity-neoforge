@@ -1,14 +1,14 @@
-package me.pepperbell.continuity.client.model;
+package me.pepperbell.continuity.client.model.bakedmodel;
 
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import me.pepperbell.continuity.client.model.ModelObjectsContainer;
 import me.pepperbell.continuity.api.client.EmissiveSpriteApi;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
 import me.pepperbell.continuity.client.render.BlendMode;
-import me.pepperbell.continuity.client.render.ForwardingBakedModel;
 import me.pepperbell.continuity.client.render.MaterialFinder;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;

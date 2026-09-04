@@ -3,6 +3,8 @@ package me.pepperbell.continuity.client.model;
 import me.pepperbell.continuity.client.render.MeshBuilder;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollector;
+import me.pepperbell.continuity.client.model.bakedmodel.CtmBakedModel;
+import me.pepperbell.continuity.client.model.bakedmodel.EmissiveBakedModel;
 import me.pepperbell.continuity.impl.client.ContinuityFeatureStatesImpl;
 
 /**

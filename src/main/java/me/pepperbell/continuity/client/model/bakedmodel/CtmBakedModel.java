@@ -1,4 +1,4 @@
-package me.pepperbell.continuity.client.model;
+package me.pepperbell.continuity.client.model.bakedmodel;
 
 import java.util.List;
 import java.util.function.Function;
@@ -6,9 +6,10 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import me.pepperbell.continuity.client.model.QuadProcessors;
+import me.pepperbell.continuity.client.model.ModelObjectsContainer;
 import me.pepperbell.continuity.api.client.QuadProcessor;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
-import me.pepperbell.continuity.client.render.ForwardingBakedModel;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;
 import me.pepperbell.continuity.client.render.QuadCollector;
@@ -209,8 +210,8 @@ public class CtmBakedModel extends ForwardingBakedModel {
 	/**
 	 * Runs the processor chain over one quad at a time.
 	 */
-	protected static class CtmQuadTransform {
-		protected final ProcessingContextImpl processingContext = new ProcessingContextImpl();
+	public static class CtmQuadTransform {
+		public final ProcessingContextImpl processingContext = new ProcessingContextImpl();
 
 		protected BlockAndTintGetter blockView;
 		protected BlockState appearanceState;

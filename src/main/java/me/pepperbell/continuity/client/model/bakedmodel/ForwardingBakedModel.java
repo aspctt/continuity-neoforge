@@ -1,4 +1,4 @@
-package me.pepperbell.continuity.client.render;
+package me.pepperbell.continuity.client.model.bakedmodel;
 
 import java.util.List;
 

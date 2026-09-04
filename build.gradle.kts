@@ -60,6 +60,28 @@ neoForge {
     }
 }
 
+// The model layer is written twice, because 1.21.5 replaced BakedModel with BlockStateModel and dropped the
+// model data the older one carries its results on. The two share nothing but the processors they drive, so
+// each lives in its own package and only the one matching this version is compiled. They stay under
+// src/main/java because that is the only tree Stonecutter preprocesses.
+// Compared numerically, because 1.21.10 sorts before 1.21.5 as a string.
+fun versionAtLeast(target: String): Boolean {
+    fun parts(version: String) = version.split('.').map { it.toIntOrNull() ?: 0 }
+    val current = parts(stonecutter.current.version)
+    val other = parts(target)
+    for (i in 0 until maxOf(current.size, other.size)) {
+        val a = current.getOrElse(i) { 0 }
+        val b = other.getOrElse(i) { 0 }
+        if (a != b) return a > b
+    }
+    return true
+}
+
+val usesBlockStateModel = versionAtLeast("1.21.5")
+sourceSets.main.get().java.exclude(
+    if (usesBlockStateModel) "**/model/bakedmodel/**" else "**/model/blockstatemodel/**"
+)
+
 dependencies {
 }
 

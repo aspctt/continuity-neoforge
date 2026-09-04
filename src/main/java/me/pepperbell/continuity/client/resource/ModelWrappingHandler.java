@@ -7,8 +7,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.ImmutableMap;
 
-import me.pepperbell.continuity.client.model.CtmBakedModel;
-import me.pepperbell.continuity.client.model.EmissiveBakedModel;
+import me.pepperbell.continuity.client.model.bakedmodel.CtmBakedModel;
+import me.pepperbell.continuity.client.model.bakedmodel.EmissiveBakedModel;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 //? if <1.21.2 {

@@ -57,6 +57,25 @@ All three load with every mixin applying, register the built-in packs, and parse
 pack into the same 42 quad processors with no errors. None has been looked at in game, so the rendering itself
 is unverified on all of them, not just on 1.21.1.
 
+### Where the version bands fall
+
+Minecraft replaced `BakedModel` with `BlockStateModel` in 1.21.5, and with it the whole basis this port stands
+on: `ModelData`, `ChunkRenderTypeSet` and `ModelProperty` are gone, so connection state can no longer be
+resolved in `getModelData` and stashed for `getQuads` to read back. Upstream renamed its own model classes at
+exactly the same version. That splits the range into three bands, not one gradient:
+
+| Band | Versions | Model API | State |
+|---|---|---|---|
+| A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
+| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | needs a second model layer |
+| C | 26.1 - 26.2 | `BlockStateModel`, further reworked | needs a third |
+
+Within a band the differences are small enough for `//?` directives. Across one they are not: band B needs its
+own model layer, which belongs in a version-specific source directory rather than in comment blocks that would
+interleave two unrelated programs in the same file. `versions/1.21.5/gradle.properties` is prepared for
+whenever that work happens, but the version is deliberately not declared in `settings.gradle.kts` yet, so the
+build stays green.
+
 Two version differences are worth knowing about when adding further targets. `BakedQuad` gained a light
 emission argument in 1.21.2, and several methods the mixins target changed signature or became static across
 1.21.x, so those injections match by name and capture only the argument they need rather than restating a

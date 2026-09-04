@@ -19,7 +19,10 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 @Mixin(ItemRenderer.class)
 abstract class ItemRendererMixin {
 	@WrapOperation(method = "renderQuadList", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFIIZ)V"))
+	//? if <1.21.4 {
 	private void continuity$brightenEmissiveQuads(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor, Operation<Void> original) {
+	//?} else
+	/*private static void continuity$brightenEmissiveQuads(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay, boolean readExistingColor, Operation<Void> original) {*/
 		if (quad instanceof EmissiveBakedQuad) {
 			packedLight = LightTexture.FULL_BRIGHT;
 		}

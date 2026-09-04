@@ -33,7 +33,10 @@ public final class PropertiesParsingHelper {
 	public static final Predicate<BlockState> EMPTY_BLOCK_STATE_PREDICATE = state -> false;
 
 	@Nullable
+	//? if <1.21.2 {
 	public static Set<ResourceLocation> parseMatchTiles(Properties properties, String propertyKey, ResourceLocation fileLocation, String packId, @Nullable ResourceRedirectHandler redirectHandler) {
+	//?} else
+	/*public static Set<ResourceLocation> parseMatchTiles(Properties properties, String propertyKey, ResourceLocation fileLocation, String packId) {*/
 		String matchTilesStr = properties.getProperty(propertyKey);
 		if (matchTilesStr == null) {
 			return null;
@@ -81,10 +84,13 @@ public final class PropertiesParsingHelper {
 					if (path.startsWith("textures/")) {
 						path = path.substring(9);
 					} else if (path.startsWith("optifine/")) {
+						//? if <1.21.2 {
 						if (redirectHandler == null) {
 							continue;
 						}
 						path = redirectHandler.getSourceSpritePath(path + ".png");
+						//?} else
+						/*path = ResourceRedirectHandler.SPRITE_PATH_START + path.substring(9);*/
 						if (namespace == null) {
 							namespace = fileLocation.getNamespace();
 						}

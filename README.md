@@ -47,20 +47,21 @@ against several Minecraft versions. Each target is a subproject under `versions/
 
 Declared targets and where they stand:
 
-| Target | Compiles | Runs |
-|---|---|---|
-| 1.21.1 | yes | yes, verified in game |
-| 1.21.3 | yes | no, mixin signatures not yet adapted |
-| 1.21.4 | yes | no, mixin signatures not yet adapted |
+| Target | NeoForge | Loads and reads packs | Rendering confirmed |
+|---|---|---|---|
+| 1.21.1 | 21.1.249 | yes | not yet |
+| 1.21.3 | 21.3.97 | yes | not yet |
+| 1.21.4 | 21.4.157 | yes | not yet |
 
-**Only the 1.21.1 jar is usable.** The other two compile because Java source differences are handled, but a
-mixin's target signature lives in an annotation string that the compiler never checks, and several of those
-signatures changed in 1.21.2. They fail at class load until each injection is adapted.
+All three load with every mixin applying, register the built-in packs, and parse the Default Connected Textures
+pack into the same 42 quad processors with no errors. None has been looked at in game, so the rendering itself
+is unverified on all of them, not just on 1.21.1.
 
-There is also a design question outstanding for 1.21.3 and later. Minecraft relaxed its sprite path
-validation, which is the only reason `ResourceRedirectHandler` and its three supporting mixins exist. Upstream
-deleted that whole mechanism at 1.21.3 rather than porting it, and this fork should probably do the same
-instead of making it apply.
+Two version differences are worth knowing about when adding further targets. `BakedQuad` gained a light
+emission argument in 1.21.2, and several methods the mixins target changed signature or became static across
+1.21.x, so those injections match by name and capture only the argument they need rather than restating a
+signature that will not survive. Minecraft also relaxed sprite path validation in 1.21.2, which let the
+reserved-path machinery collapse from an index table and three supporting mixins down to a single rewrite.
 
 ## Installation
 

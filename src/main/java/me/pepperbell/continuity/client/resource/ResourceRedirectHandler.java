@@ -1,5 +1,6 @@
 package me.pepperbell.continuity.client.resource;
 
+//? if <1.21.2 {
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,13 +12,32 @@ import me.pepperbell.continuity.client.mixin.ReloadableResourceManagerAccessor;
 import me.pepperbell.continuity.client.mixinterface.MultiPackResourceManagerExtension;
 import me.pepperbell.continuity.client.util.BooleanState;
 import net.minecraft.server.packs.resources.ResourceManager;
+//?}
 import net.minecraft.resources.ResourceLocation;
 
 public class ResourceRedirectHandler {
 	public static final String SPRITE_PATH_START = "continuity_reserved/";
 	public static final String PATH_START = "textures/" + SPRITE_PATH_START;
-	public static final String PATH_END = ".png";
 	public static final int PATH_START_LENGTH = PATH_START.length();
+	//? if <1.21.2
+	public static final String PATH_END = ".png";
+
+	// Rewrites a sprite id back to the file it stands for. Tiles named by a path rather than a sprite id are
+	// given an id under SPRITE_PATH_START so they can be stitched onto the atlas. From 1.21.2 that id simply
+	// carries the optifine path, because the game no longer rejects it; before then the path had to be hidden
+	// behind an index and the id validation suppressed, which is what the block below does.
+	//? if >=1.21.2 {
+	/*public static ResourceLocation redirect(ResourceLocation id) {
+		String path = id.getPath();
+		if (!path.startsWith(PATH_START)) {
+			return id;
+		}
+
+		return id.withPath("optifine/" + path.substring(PATH_START_LENGTH));
+	}
+	*///?}
+
+	//? if <1.21.2 {
 	public static final int PATH_END_LENGTH = PATH_END.length();
 	public static final int HEX_LENGTH = 8;
 	public static final int HEX_END = PATH_START_LENGTH + HEX_LENGTH;
@@ -151,4 +171,5 @@ public class ResourceRedirectHandler {
 			}
 		}
 	}
+	//?}
 }

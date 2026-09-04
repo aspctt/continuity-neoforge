@@ -77,6 +77,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_version" to project.version.toString(),
         "mod_authors" to prop("mod_authors"),
         "mod_description" to prop("mod_description"),
+        "resource_pack_format" to prop("resource_pack_format"),
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

@@ -1,6 +1,6 @@
 {
   "pack": {
-    "pack_format": 34,
+    "pack_format": ${resource_pack_format},
     "description": {
       "translate": "resourcePack.continuity.glass_pane_culling_fix.description"
     }

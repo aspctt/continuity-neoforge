@@ -58,14 +58,17 @@ public class CtmPropertiesLoader {
 	private LoadingResult loadAll() {
 		int packPriority = 0;
 		Iterator<PackResources> iterator = resourceManager.listPacks().iterator();
+		//? if <1.21.2 {
 		BooleanState invalidIdentifierState = InvalidIdentifierStateHolder.get();
 		invalidIdentifierState.enable();
+		//?}
 		while (iterator.hasNext()) {
 			PackResources pack = iterator.next();
 			loadAll(pack, packPriority);
 			packPriority++;
 		}
-		invalidIdentifierState.disable();
+		//? if <1.21.2
+		/*invalidIdentifierState.disable();*/
 
 		containers.sort(Comparator.reverseOrder());
 

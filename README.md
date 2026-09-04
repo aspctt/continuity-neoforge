@@ -32,6 +32,22 @@ The interesting part of the work is the renderer. Upstream is built on the Fabri
 
 Two upstream mixins are gone rather than ported. Continuity on Fabric explicitly disables itself while falling blocks and piston-moved blocks render; on NeoForge both of those paths pass empty model data, so the same thing happens on its own.
 
+## Building
+
+The build is organised with [Stonecutter](https://stonecutter.kikugie.dev/), which compiles one source tree
+against several Minecraft versions. Each target is a subproject under `versions/`, declared in
+`settings.gradle.kts` and configured by its own `gradle.properties`; the shared build script is
+`build.gradle.kts` at the root.
+
+```
+./gradlew build                 # build every declared version
+./gradlew :1.21.1:build         # build one
+./gradlew :1.21.1:runClient     # run one, sharing the root run/ directory
+```
+
+Only 1.21.1 is declared so far. Further targets get added as they are ported rather than declared up front
+and left broken, since the model API moves substantially across 1.21.x and is replaced outright in 26.x.
+
 ## Installation
 
 Place the JAR in your `mods` folder. There are no dependencies.

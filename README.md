@@ -47,35 +47,60 @@ against several Minecraft versions. Each target is a subproject under `versions/
 
 Declared targets and where they stand:
 
-| Target | NeoForge | Model API | Loads and reads packs | Rendering confirmed |
-|---|---|---|---|---|
-| 1.21.1 | 21.1.249 | baked model | yes | not yet |
-| 1.21.3 | 21.3.97 | baked model | yes | not yet |
-| 1.21.4 | 21.4.157 | baked model | yes | not yet |
-| 1.21.5 | 21.5.98 | block state model | yes | not yet |
+| Target | NeoForge | Model API | Builds | Loads and reads packs | Rendering confirmed |
+|---|---|---|---|---|---|
+| 1.21.1 | 21.1.249 | baked model | yes | yes | not yet |
+| 1.21.3 | 21.3.97 | baked model | yes | yes | not yet |
+| 1.21.4 | 21.4.157 | baked model | yes | yes | not yet |
+| 1.21.5 | 21.5.98 | block state model | yes | yes | not yet |
+| 1.21.6 | 21.6.20-beta | block state model | yes | not yet | not yet |
+| 1.21.8 | 21.8.54 | block state model | yes | not yet | not yet |
+| 1.21.10 | 21.10.63 | block state model | yes | not yet | not yet |
+| 1.21.11 | 21.11.45 | block state model | yes | not yet | not yet |
 
-All four load with every mixin applying, register the built-in packs, and parse the Default Connected Textures
-pack into the same 42 quad processors with no errors. None has been looked at in game, so the rendering itself
-is unverified on all of them.
+1.21.1 through 1.21.5 have been started: every mixin applies, both built-in packs register, and the Default
+Connected Textures pack parses into the same 42 quad processors with no errors. None has been looked at in
+game, so the rendering itself is unverified everywhere.
 
-One gap specific to 1.21.5: emissive textures apply to blocks but not to items. Item models became a separate
+1.21.6 and later compile and package, and their injection points have been checked against the real bytecode,
+but they have not been launched yet. Treat them as untested until they have been.
+
+The 1.21.6 target covers 1.21.7 and the 1.21.8 target covers 1.21.9, since NeoForge only ever published beta
+builds for those two. That pairing assumes they are compatible, which has not been verified either.
+
+One gap from 1.21.5 onwards: emissive textures apply to blocks but not to items. Item models became a separate
 system in 1.21.4 and nothing wraps them yet on that band.
 
-### Adding 1.21.6 and later
+### Checking injection points
 
-Groundwork for these is in place: each has a `versions/` directory with its NeoForge version and pack format
-resolved, Parchment is optional so a target without it still builds, and the pack metadata template handles both
-the old single `pack_format` and the `min_format` / `max_format` pair that replaced it in 1.21.10. They are not
-declared in `settings.gradle.kts` yet, because each still needs source work:
+Mixin targets are annotation strings, so javac never sees them: a descriptor that drifted between versions
+compiles cleanly and fails at runtime. Every `method` and `@At` target is therefore checked against the
+bytecode of each target's own jars with `javap`, following supertypes so that NeoForge's interface extensions
+count. That check found two injections that compiled but would not have applied: `SpriteSourceList.list` gained
+a second argument in 1.21.10 and the one-argument overload became a delegate with no injection point left in
+it, and `SpriteLoader.loadAndStitch` narrowed its last argument from a collection to a set at the same version.
 
-| Target | NeoForge | Remaining work |
-|---|---|---|
-| 1.21.6, 1.21.8 | 21.6.20-beta, 21.8.54 | chunk layers became `ChunkSectionLayer` rather than `RenderType`, which threads through the blend modes, the quad collection, the model parts and the custom block layers; `RenderChunkRegion` also moved |
-| 1.21.10 | 21.10.63 | the same, plus `AtlasSet` moved |
-| 1.21.11 | 21.11.45 | the same, plus `ResourceLocation` was renamed to `Identifier` and `RenderType` renamed again, which is mostly a replacement pass |
+```
+./gradlew :1.21.11:build
+python tools/check-mixin-targets.py 1.21.11
+```
 
-None of these is another architectural break like 1.21.5 was. They are type changes rather than a new model API,
-so the band B model layer should carry across once the chunk layer type is threaded through.
+### What changed after 1.21.5
+
+None of these was another architectural break on the scale of 1.21.5, but 1.21.11 came closer than the others.
+
+| Target | What moved |
+|---|---|
+| 1.21.6 | chunk layers left `RenderType` for a `ChunkSectionLayer` enum of their own, and `RenderChunkRegion` became `RenderSectionRegion` |
+| 1.21.8 | nothing beyond 1.21.6 |
+| 1.21.10 | `AtlasSet` gave way to `SpriteLoader.Preparations`, reload listeners take a shared state rather than a resource manager, and pack metadata replaced `pack_format` with `min_format` and `max_format` |
+| 1.21.11 | `ResourceLocation` became `Identifier`, and `BakedQuad` stopped being backed by a vertex array |
+
+The 1.21.11 quad change is the substantive one. Positions are now `Vector3fc`, texture coordinates are packed
+into longs, and colours and normals moved into `BakedColors` and `BakedNormals`. The internal layout this port
+keeps is unchanged; only the two methods that convert to and from a vanilla quad had to be rewritten, so the
+processors and the model layer above them were untouched. Two smaller consequences: the mipped and unmipped
+cutout chunk layers merged into one, and sprites are padded on the atlas instead of having their UVs shrunk.
 
 ### Where the version bands fall
 
@@ -87,7 +112,7 @@ exactly the same version. That splits the range into three bands, not one gradie
 | Band | Versions | Model API | State |
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
-| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | 1.21.5 working, later versions not yet declared |
+| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | 1.21.5 started, 1.21.6 to 1.21.11 build but are untested |
 | C | 26.1 - 26.2 | `BlockStateModel`, further reworked | needs a third |
 
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has

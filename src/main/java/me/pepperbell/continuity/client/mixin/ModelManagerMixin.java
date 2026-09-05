@@ -61,15 +61,18 @@ abstract class ModelManagerMixin {
 	 * <p>The getter the event supplies logs a warning and a stack trace for every sprite it cannot find. A CTM
 	 * properties file naming a texture the pack does not ship is a normal, handled condition, and it should not read
 	 * as a Continuity fault in someone's log. From 1.21.10 the stitched atlases are no longer passed around as an
-	 * atlas set, so the block atlas preparations are captured instead.
+	 * atlas set, so the block atlas preparations are captured instead, and from 1.21.11 blocks and items are
+	 * stitched separately and both are passed, so the two are told apart by position.
 	 */
 	@Inject(method = "loadModels", at = @At("HEAD"))
 	//? if <1.21.4 {
 	private void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) Map<ResourceLocation, AtlasSet.StitchResult> stitchResults) {
 	//?} elif <1.21.10 {
 	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) Map<ResourceLocation, AtlasSet.StitchResult> stitchResults) {
+	*///?} elif <1.21.11 {
+	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) SpriteLoader.Preparations preparations) {
 	*///?} else
-	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) SpriteLoader.Preparations preparations) {*/
+	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true, ordinal = 0) SpriteLoader.Preparations preparations, @Local(argsOnly = true, ordinal = 1) SpriteLoader.Preparations itemPreparations) {*/
 		ModelReloadHandler handler = ModelReloadHandler.getCurrent();
 		if (handler == null) {
 			return;
@@ -84,13 +87,32 @@ abstract class ModelManagerMixin {
 			TextureAtlasSprite sprite = stitchResult.getSprite(material.texture());
 			return sprite != null ? sprite : stitchResult.missing();
 		});
-		//?} else {
+		//?} elif <1.21.11 {
 		/*handler.setSilentTextureGetter(material -> {
 			if (!material.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS)) {
 				return null;
 			}
 			TextureAtlasSprite sprite = preparations.getSprite(material.texture());
 			return sprite != null ? sprite : preparations.missing();
+		});
+		*///?} else {
+		/*handler.setSilentTextureGetter(material -> {
+			ResourceLocation atlas = material.atlasLocation();
+			boolean either = atlas.equals(ModelManager.BLOCK_OR_ITEM);
+			if (either || atlas.equals(TextureAtlas.LOCATION_ITEMS)) {
+				TextureAtlasSprite sprite = itemPreparations.getSprite(material.texture());
+				if (sprite != null) {
+					return sprite;
+				}
+			}
+			if (either || atlas.equals(TextureAtlas.LOCATION_BLOCKS)) {
+				TextureAtlasSprite sprite = preparations.getSprite(material.texture());
+				if (sprite != null) {
+					return sprite;
+				}
+				return preparations.missing();
+			}
+			return null;
 		});
 		*///?}
 	}

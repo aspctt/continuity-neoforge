@@ -30,8 +30,8 @@ repositories {
     mavenCentral()
 }
 
-// Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// Mojang ships Java 21 to end users through 1.21.11, and Java 25 from 26.1.
+java.toolchain.languageVersion = JavaLanguageVersion.of(if (versionAtLeast("26.1")) 25 else 21)
 
 neoForge {
     version = prop("neo_version")

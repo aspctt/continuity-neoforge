@@ -101,6 +101,23 @@ keeps is unchanged; only the two methods that convert to and from a vanilla quad
 processors and the model layer above them were untouched. Two smaller consequences: the mipped and unmipped
 cutout chunk layers merged into one, and sprites are padded on the atlas instead of having their UVs shrunk.
 
+### What band C needs
+
+26.1 and 26.2 have NeoForge builds (26.1.2.103 and 26.2.0.76) and a `versions/` directory each, and the
+toolchain follows Minecraft to Java 25 there. They are not declared in `settings.gradle.kts`, because band C is
+a third model layer rather than a set of renames. Compiling against 26.1 gives 100 errors that fall into three
+groups:
+
+| Group | What it is |
+|---|---|
+| Package moves | `BakedQuad`, `BlockStateModel`, `Material` and `BlockAndTintGetter` all moved, and `BlockModelPart` became `BlockStateModelPart`. Mechanical, and the shape of `collectParts` and `getQuads` is unchanged, so the band B model layer carries across |
+| Chunk layers | a part no longer names a chunk layer at all. It carries `materialFlags()`, a bitmask on the quad, which is what the quad collection and the processed parts are built around today |
+| Hooks with no target left | `ItemBlockRenderTypes`, `ItemRenderer`, `BlockModelShaper` and `LightTexture` are gone, and `ModelBlockRenderer.putQuadData` became `putQuadWithTint`, taking a `BlockQuadOutput` rather than a vertex consumer. Custom block layers, both emissive brightening paths and the model cache hook all need somewhere new to attach |
+
+The first group is a replacement pass. The second reshapes the render package, and the third is four mixins
+that have to be rewritten against a different rendering path, so this is closer in size to the original band B
+port than to adding 1.21.11.
+
 ### Where the version bands fall
 
 Minecraft replaced `BakedModel` with `BlockStateModel` in 1.21.5, and with it the whole basis this port stands
@@ -112,7 +129,7 @@ exactly the same version. That splits the range into three bands, not one gradie
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
 | B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | all targets start, none confirmed rendering |
-| C | 26.1 - 26.2 | `BlockStateModel`, further reworked | needs a third |
+| C | 26.1 - 26.2 | `BlockStateModel`, reworked again | not started |
 
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has
 its own model layer under `client/model/`: `bakedmodel` for band A, `blockstatemodel` for band B. Only the

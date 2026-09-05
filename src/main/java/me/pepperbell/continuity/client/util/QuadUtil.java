@@ -25,7 +25,10 @@ public final class QuadUtil {
 	}
 
 	public static void assignLerpedUVs(MutableQuadView quad, TextureAtlasSprite sprite) {
+		//? if <1.21.11 {
 		float delta = sprite.uvShrinkRatio();
+		//?} else
+		/*float delta = 0.0f; // Sprites carry padding on the atlas from 1.21.11, so there is no bleed to lerp away.*/
 		float centerU = (sprite.getU0() + sprite.getU1()) * 0.5f;
 		float centerV = (sprite.getV0() + sprite.getV1()) * 0.5f;
 		float lerpedMinU = Mth.lerp(delta, sprite.getU0(), centerU);

@@ -7,6 +7,24 @@ import net.minecraft.core.Direction;
  * Base emitter that writes into itself and hands the finished quad to {@link #emitDirectly()}.
  */
 public abstract class AbstractQuadEmitter extends MutableQuad implements QuadEmitter {
+	// Indices into the shape array below. 1.21.11 turned these from plain constants into an enum, but kept the
+	// order, so the ordinals stand in for the old values.
+	//? if <1.21.11 {
+	private static final int MIN_X = FaceInfo.Constants.MIN_X;
+	private static final int MIN_Y = FaceInfo.Constants.MIN_Y;
+	private static final int MIN_Z = FaceInfo.Constants.MIN_Z;
+	private static final int MAX_X = FaceInfo.Constants.MAX_X;
+	private static final int MAX_Y = FaceInfo.Constants.MAX_Y;
+	private static final int MAX_Z = FaceInfo.Constants.MAX_Z;
+	//?} else {
+	/*private static final int MIN_X = FaceInfo.Extent.MIN_X.ordinal();
+	private static final int MIN_Y = FaceInfo.Extent.MIN_Y.ordinal();
+	private static final int MIN_Z = FaceInfo.Extent.MIN_Z.ordinal();
+	private static final int MAX_X = FaceInfo.Extent.MAX_X.ordinal();
+	private static final int MAX_Y = FaceInfo.Extent.MAX_Y.ordinal();
+	private static final int MAX_Z = FaceInfo.Extent.MAX_Z.ordinal();
+	*///?}
+
 	/**
 	 * Called by {@link #emit()} while the quad still holds the data to output.
 	 */
@@ -34,59 +52,62 @@ public abstract class AbstractQuadEmitter extends MutableQuad implements QuadEmi
 
 		switch (face) {
 			case DOWN -> {
-				shape[FaceInfo.Constants.MIN_Y] = plane;
-				shape[FaceInfo.Constants.MAX_Y] = plane;
-				shape[FaceInfo.Constants.MIN_X] = left;
-				shape[FaceInfo.Constants.MAX_X] = right;
-				shape[FaceInfo.Constants.MIN_Z] = bottom;
-				shape[FaceInfo.Constants.MAX_Z] = top;
+				shape[MIN_Y] = plane;
+				shape[MAX_Y] = plane;
+				shape[MIN_X] = left;
+				shape[MAX_X] = right;
+				shape[MIN_Z] = bottom;
+				shape[MAX_Z] = top;
 			}
 			case UP -> {
-				shape[FaceInfo.Constants.MIN_Y] = plane;
-				shape[FaceInfo.Constants.MAX_Y] = plane;
-				shape[FaceInfo.Constants.MIN_X] = left;
-				shape[FaceInfo.Constants.MAX_X] = right;
-				shape[FaceInfo.Constants.MIN_Z] = 1.0f - top;
-				shape[FaceInfo.Constants.MAX_Z] = 1.0f - bottom;
+				shape[MIN_Y] = plane;
+				shape[MAX_Y] = plane;
+				shape[MIN_X] = left;
+				shape[MAX_X] = right;
+				shape[MIN_Z] = 1.0f - top;
+				shape[MAX_Z] = 1.0f - bottom;
 			}
 			case NORTH -> {
-				shape[FaceInfo.Constants.MIN_Z] = plane;
-				shape[FaceInfo.Constants.MAX_Z] = plane;
-				shape[FaceInfo.Constants.MIN_X] = 1.0f - right;
-				shape[FaceInfo.Constants.MAX_X] = 1.0f - left;
-				shape[FaceInfo.Constants.MIN_Y] = bottom;
-				shape[FaceInfo.Constants.MAX_Y] = top;
+				shape[MIN_Z] = plane;
+				shape[MAX_Z] = plane;
+				shape[MIN_X] = 1.0f - right;
+				shape[MAX_X] = 1.0f - left;
+				shape[MIN_Y] = bottom;
+				shape[MAX_Y] = top;
 			}
 			case SOUTH -> {
-				shape[FaceInfo.Constants.MIN_Z] = plane;
-				shape[FaceInfo.Constants.MAX_Z] = plane;
-				shape[FaceInfo.Constants.MIN_X] = left;
-				shape[FaceInfo.Constants.MAX_X] = right;
-				shape[FaceInfo.Constants.MIN_Y] = bottom;
-				shape[FaceInfo.Constants.MAX_Y] = top;
+				shape[MIN_Z] = plane;
+				shape[MAX_Z] = plane;
+				shape[MIN_X] = left;
+				shape[MAX_X] = right;
+				shape[MIN_Y] = bottom;
+				shape[MAX_Y] = top;
 			}
 			case WEST -> {
-				shape[FaceInfo.Constants.MIN_X] = plane;
-				shape[FaceInfo.Constants.MAX_X] = plane;
-				shape[FaceInfo.Constants.MIN_Z] = left;
-				shape[FaceInfo.Constants.MAX_Z] = right;
-				shape[FaceInfo.Constants.MIN_Y] = bottom;
-				shape[FaceInfo.Constants.MAX_Y] = top;
+				shape[MIN_X] = plane;
+				shape[MAX_X] = plane;
+				shape[MIN_Z] = left;
+				shape[MAX_Z] = right;
+				shape[MIN_Y] = bottom;
+				shape[MAX_Y] = top;
 			}
 			case EAST -> {
-				shape[FaceInfo.Constants.MIN_X] = plane;
-				shape[FaceInfo.Constants.MAX_X] = plane;
-				shape[FaceInfo.Constants.MIN_Z] = 1.0f - right;
-				shape[FaceInfo.Constants.MAX_Z] = 1.0f - left;
-				shape[FaceInfo.Constants.MIN_Y] = bottom;
-				shape[FaceInfo.Constants.MAX_Y] = top;
+				shape[MIN_X] = plane;
+				shape[MAX_X] = plane;
+				shape[MIN_Z] = 1.0f - right;
+				shape[MAX_Z] = 1.0f - left;
+				shape[MIN_Y] = bottom;
+				shape[MAX_Y] = top;
 			}
 		}
 
 		FaceInfo faceInfo = FaceInfo.fromFacing(face);
 		for (int i = 0; i < VERTEX_COUNT; i++) {
 			FaceInfo.VertexInfo vertexInfo = faceInfo.getVertexInfo(i);
+			//? if <1.21.11 {
 			pos(i, shape[vertexInfo.xFace], shape[vertexInfo.yFace], shape[vertexInfo.zFace]);
+			//?} else
+			/*pos(i, shape[vertexInfo.xFace().ordinal()], shape[vertexInfo.yFace().ordinal()], shape[vertexInfo.zFace().ordinal()]);*/
 		}
 
 		return this;

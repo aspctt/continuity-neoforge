@@ -11,6 +11,13 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.common.util.TriState;
+//? if >=1.21.11 {
+/*import net.minecraft.client.model.geom.builders.UVPair;
+import net.neoforged.neoforge.client.model.quad.BakedColors;
+import net.neoforged.neoforge.client.model.quad.BakedNormals;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+*///?}
 
 /**
  * Concrete quad backed by a vanilla vertex array, so it can be loaded from and baked back into a
@@ -315,8 +322,24 @@ public class MutableQuad implements MutableQuadView {
 		colorIndex = quad.getTintIndex();
 		lightFace = quad.getDirection();
 		nominalFace = quad.getDirection();
-		//?} else {
+		//?} elif <1.21.11 {
 		/*System.arraycopy(quad.vertices(), 0, data, 0, QUAD_STRIDE);
+		sprite = quad.sprite();
+		colorIndex = quad.tintIndex();
+		lightFace = quad.direction();
+		nominalFace = quad.direction();
+		*///?} else {
+		/*// 1.21.11 replaced the vertex array with structured fields, so the data has to be unpacked rather than
+		// copied. The layout this class keeps internally is unchanged.
+		for (int i = 0; i < VERTEX_COUNT; i++) {
+			Vector3fc position = quad.position(i);
+			pos(i, position.x(), position.y(), position.z());
+			long packedUV = quad.packedUV(i);
+			uv(i, UVPair.unpackU(packedUV), UVPair.unpackV(packedUV));
+			color(i, quad.bakedColors().color(i));
+			data[i * VERTEX_STRIDE + OFFSET_LIGHTMAP] = 0;
+			data[i * VERTEX_STRIDE + OFFSET_NORMAL] = quad.bakedNormals().normal(i);
+		}
 		sprite = quad.sprite();
 		colorIndex = quad.tintIndex();
 		lightFace = quad.direction();
@@ -355,7 +378,7 @@ public class MutableQuad implements MutableQuadView {
 		//? if >=1.21.2 && <1.21.5 {
 		/*int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;
 		*///?}
-		//? if >=1.21.5 {
+		//? if >=1.21.5 && <1.21.11 {
 		/*if (material.emissive()) {
 			for (int i = 0; i < VERTEX_COUNT; i++) {
 				vertices[i * VERTEX_STRIDE + OFFSET_LIGHTMAP] = LightTexture.FULL_BRIGHT;
@@ -363,6 +386,31 @@ public class MutableQuad implements MutableQuadView {
 			return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, EmissiveQuads.EMISSIVE_LIGHT, hasAmbientOcclusion);
 		}
 		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);
+		*///?}
+		//? if >=1.21.11 {
+		/*// The renderer folds the light emission into the lightmap itself here, so there is no vertex lightmap
+		// left to force to full bright.
+		return new BakedQuad(
+				new Vector3f(x(0), y(0), z(0)),
+				new Vector3f(x(1), y(1), z(1)),
+				new Vector3f(x(2), y(2), z(2)),
+				new Vector3f(x(3), y(3), z(3)),
+				UVPair.pack(u(0), v(0)),
+				UVPair.pack(u(1), v(1)),
+				UVPair.pack(u(2), v(2)),
+				UVPair.pack(u(3), v(3)),
+				colorIndex,
+				lightFace,
+				sprite,
+				shade,
+				material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0,
+				BakedNormals.of(
+						data[OFFSET_NORMAL],
+						data[VERTEX_STRIDE + OFFSET_NORMAL],
+						data[2 * VERTEX_STRIDE + OFFSET_NORMAL],
+						data[3 * VERTEX_STRIDE + OFFSET_NORMAL]),
+				BakedColors.of(color(0), color(1), color(2), color(3)),
+				hasAmbientOcclusion);
 		*///?}
 		//? if <1.21.5 {
 		if (material.emissive()) {

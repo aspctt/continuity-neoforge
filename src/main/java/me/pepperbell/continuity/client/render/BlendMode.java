@@ -41,11 +41,16 @@ public enum BlendMode {
 		if (layer == RenderType.solid()) {
 			return SOLID;
 		}
+		//? if <1.21.11 {
 		if (layer == RenderType.cutoutMipped()) {
 			return CUTOUT_MIPPED;
 		}
+		//?}
 		if (layer == RenderType.cutout()) {
+			//? if <1.21.11 {
 			return CUTOUT;
+			//?} else
+			/*return CUTOUT_MIPPED; // The two cutout layers merged, and what is left behaves like the mipped one.*/
 		}
 		if (layer == RenderType.translucent()) {
 			return TRANSLUCENT;

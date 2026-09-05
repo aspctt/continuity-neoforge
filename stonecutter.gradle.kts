@@ -48,5 +48,31 @@ stonecutter parameters {
             // the descriptor the sprite loader injections match on.
             replace("ILjava/util/concurrent/Executor;Ljava/util/Collection;)", "ILjava/util/concurrent/Executor;Ljava/util/Set;)")
         }
+
+        string(current.parsed >= "1.21.11") {
+            // ResourceLocation became Identifier. The mod has its own InvalidIdentifierStateHolder, but no bare
+            // Identifier of its own, so these patterns cannot collide with it in either direction.
+            replace("import net.minecraft.resources.ResourceLocation;", "import net.minecraft.resources.Identifier;")
+            replace("import net.minecraft.ResourceLocationException;", "import net.minecraft.IdentifierException;")
+            replace("Lnet/minecraft/resources/ResourceLocation;", "Lnet/minecraft/resources/Identifier;")
+            replace("ResourceLocationException ", "IdentifierException ")
+            replace("ResourceLocation ", "Identifier ")
+            replace("ResourceLocation,", "Identifier,")
+            replace("ResourceLocation>", "Identifier>")
+            replace("ResourceLocation.", "Identifier.")
+
+            // The sprite suppliers gained names of their own rather than being spelled out as functions.
+            replace("SpriteSource.SpriteSupplier", "SpriteSource.DiscardableLoader")
+            replace("Function<SpriteResourceLoader, SpriteContents>", "SpriteSource.Loader")
+
+            // The mipped and unmipped cutout chunk layers merged into a single mipped one.
+            replace("ChunkSectionLayer.CUTOUT_MIPPED", "ChunkSectionLayer.CUTOUT")
+
+            // RenderType moved down a package. Only ItemBlockRenderTypesMixin names it, once as a fully
+            // qualified type and once inside an injection descriptor; every other file reaches the type through
+            // an import that the 1.21.6 block rewrites to the chunk layer.
+            replace("net.minecraft.client.renderer.RenderType", "net.minecraft.client.renderer.rendertype.RenderType")
+            replace("Lnet/minecraft/client/renderer/RenderType;", "Lnet/minecraft/client/renderer/rendertype/RenderType;")
+        }
     }
 }

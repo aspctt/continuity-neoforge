@@ -1,9 +1,19 @@
-# <p align=center> Continuity </p>
+# <p align=center> Continuity (NeoForge) </p>
+
+<div align="center">
 
 ![Version](https://img.shields.io/badge/Available_for-1.21.1-blue)
-![Mod Loader](https://img.shields.io/badge/Mod_Loader-NeoForge-orange)
 ![Requires](https://img.shields.io/badge/Requires-Nothing-brightgreen)
-![License](https://img.shields.io/badge/License-LGPL--3.0--only-blue)
+![License](https://img.shields.io/badge/License-LGPL--3.0--only-red)
+
+![NeoForge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/neoforge_vector.svg)
+![Forge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/unsupported/forge_vector.svg)
+
+[![GitHub](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/github_vector.svg)](https://github.com/aspctt/continuity-neoforge)
+[![Modrinth](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/modrinth_vector.svg)](https://modrinth.com/mod/continuity-neoforged)
+[![CurseForge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/curseforge_vector.svg)](https://www.curseforge.com/minecraft/mc-mods/continuity-neoforged)
+
+</div>
 
 Continuity makes resource packs that use the OptiFine connected textures, emissive textures, and custom block layers formats work without OptiFine. It is client side only, and this build is native NeoForge: no Sinytra Connector, no Fabric API, nothing else to install.
 
@@ -33,4 +43,4 @@ Minecraft 1.21.1 and NeoForge 21.1.0 or newer.
 
 ### License
 
-LGPL-3.0-only, the same as upstream, with the full terms in [LICENSE](LICENSE). This is a derivative work: if you distribute the JAR, you must make the source available to whoever you distribute it to.
+LGPL-3.0-only, the same as upstream, with the full terms in [LICENSE](https://github.com/aspctt/continuity-neoforge/blob/main/LICENSE). This is a derivative work: if you distribute the JAR, you must make the source available to whoever you distribute it to.

@@ -20,7 +20,6 @@ import me.pepperbell.continuity.client.ContinuityClient;
 import me.pepperbell.continuity.client.model.QuadProcessors;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.resources.model.AtlasSet;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
@@ -46,7 +45,7 @@ public class ModelReloadHandler {
 	private final SpriteLoaderLoadContextImpl spriteLoaderLoadContext;
 	private volatile List<QuadProcessors.ProcessorHolder> processorHolders;
 	@Nullable
-	private volatile Map<ResourceLocation, AtlasSet.StitchResult> stitchResults;
+	private volatile Function<Material, TextureAtlasSprite> silentTextureGetter;
 
 	public ModelReloadHandler(ResourceManager resourceManager, Executor prepareExecutor) {
 		ctmLoadingResultFuture = CompletableFuture.supplyAsync(() -> CtmPropertiesLoader.loadAllWithState(resourceManager), prepareExecutor);
@@ -63,34 +62,30 @@ public class ModelReloadHandler {
 	}
 
 	/**
-	 * Records the stitched atlases so sprites can be looked up while processors are built.
+	 * Records a sprite lookup that stays quiet about textures a pack failed to ship.
 	 *
-	 * <p>Called from {@code ModelManagerMixin} rather than read off the baking event, because the texture getter the
+	 * <p>Supplied by {@code ModelManagerMixin} rather than read off the baking event, because the texture getter the
 	 * event hands out logs a warning and a stack trace for every sprite it cannot find. A CTM properties file naming a
 	 * texture the pack does not ship is a normal, handled condition here, and it should not read as a Continuity fault
-	 * in someone's log.
+	 * in someone's log. The lookup returns {@code null} for an atlas it does not cover.
 	 */
-	public void setStitchResults(Map<ResourceLocation, AtlasSet.StitchResult> stitchResults) {
-		this.stitchResults = stitchResults;
+	public void setSilentTextureGetter(Function<Material, TextureAtlasSprite> silentTextureGetter) {
+		this.silentTextureGetter = silentTextureGetter;
 	}
 
 	@Nullable
 	public ModelWrappingHandler beforeBaking(Function<Material, TextureAtlasSprite> fallbackTextureGetter) {
 		CtmPropertiesLoader.LoadingResult result = ctmLoadingResultFuture.join();
 
-		Map<ResourceLocation, AtlasSet.StitchResult> stitchResults = this.stitchResults;
+		Function<Material, TextureAtlasSprite> silentTextureGetter = this.silentTextureGetter;
 		Function<Material, TextureAtlasSprite> textureGetter;
-		if (stitchResults == null) {
+		if (silentTextureGetter == null) {
 			// The mixin did not run, so take the event's getter and accept the extra logging over having no sprites.
 			textureGetter = fallbackTextureGetter;
 		} else {
 			textureGetter = material -> {
-				AtlasSet.StitchResult stitchResult = stitchResults.get(material.atlasLocation());
-				if (stitchResult == null) {
-					return fallbackTextureGetter.apply(material);
-				}
-				TextureAtlasSprite sprite = stitchResult.getSprite(material.texture());
-				return sprite != null ? sprite : stitchResult.missing();
+				TextureAtlasSprite sprite = silentTextureGetter.apply(material);
+				return sprite != null ? sprite : fallbackTextureGetter.apply(material);
 			};
 		}
 
@@ -135,7 +130,12 @@ public class ModelReloadHandler {
 			return;
 		}
 
+		//? if <1.21.10 {
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(event.getTextureGetter());
+		//?} else {
+		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();
+		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.texture()));
+		*///?}
 		if (wrappingHandler != null) {
 			//? if <1.21.4 {
 			wrappingHandler.wrapAll(event.getModels());

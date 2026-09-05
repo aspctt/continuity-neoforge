@@ -42,5 +42,11 @@ stonecutter parameters {
             // The chunk render region was renamed alongside them.
             replace("RenderChunkRegion", "RenderSectionRegion")
         }
+
+        string(current.parsed >= "1.21.10") {
+            // The metadata section argument of loadAndStitch narrowed from a collection to a set, which changes
+            // the descriptor the sprite loader injections match on.
+            replace("ILjava/util/concurrent/Executor;Ljava/util/Collection;)", "ILjava/util/concurrent/Executor;Ljava/util/Set;)")
+        }
     }
 }

@@ -20,6 +20,9 @@ import net.neoforged.neoforge.client.ChunkRenderTypeSet;
  * <p>Three entry points are covered. Chunk rendering asks {@code getRenderLayers}, since NeoForge lets a block sit in
  * several layers at once; the two single-layer methods are deprecated upstream but still reached from mod code and
  * from Continuity itself when resolving what the default blend mode means for a block.
+ *
+ * <p>From 1.21.6 the chunk layers are their own type, so the moving block variant has to convert rather than return
+ * the layer as it is.
  */
 @Mixin(ItemBlockRenderTypes.class)
 abstract class ItemBlockRenderTypesMixin {
@@ -33,7 +36,10 @@ abstract class ItemBlockRenderTypesMixin {
 	}
 	//?}
 
+	//? if <1.21.6 {
 	@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/RenderType;", at = @At("HEAD"), cancellable = true)
+	//?} else
+	/*@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;", at = @At("HEAD"), cancellable = true)*/
 	private static void continuity$onHeadGetChunkRenderType(BlockState state, CallbackInfoReturnable<RenderType> cir) {
 		RenderType layer = continuity$getCustomLayer(state);
 		if (layer != null) {
@@ -41,6 +47,7 @@ abstract class ItemBlockRenderTypesMixin {
 		}
 	}
 
+	//? if <1.21.6 {
 	@Inject(method = "getMovingBlockRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/RenderType;", at = @At("HEAD"), cancellable = true)
 	private static void continuity$onHeadGetMovingBlockRenderType(BlockState state, CallbackInfoReturnable<RenderType> cir) {
 		RenderType layer = continuity$getCustomLayer(state);
@@ -48,6 +55,15 @@ abstract class ItemBlockRenderTypesMixin {
 			cir.setReturnValue(layer == RenderType.translucent() ? RenderType.translucentMovingBlock() : layer);
 		}
 	}
+	//?} else {
+	/*@Inject(method = "getMovingBlockRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/RenderType;", at = @At("HEAD"), cancellable = true)
+	private static void continuity$onHeadGetMovingBlockRenderType(BlockState state, CallbackInfoReturnable<net.minecraft.client.renderer.RenderType> cir) {
+		var layer = continuity$getCustomLayer(state);
+		if (layer != null) {
+			cir.setReturnValue(net.neoforged.neoforge.client.RenderTypeHelper.getMovingBlockRenderType(layer));
+		}
+	}
+	*///?}
 
 	@Unique
 	private static RenderType continuity$getCustomLayer(BlockState state) {

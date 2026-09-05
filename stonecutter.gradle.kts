@@ -24,5 +24,23 @@ stonecutter parameters {
             // BakedQuad became a record in 1.21.5, but its accessor names collide with this mod's own quad
             // API, so those call sites use directives rather than a replacement that would rewrite both.
         }
+
+        string(current.parsed >= "1.21.6") {
+            // Chunk layers left RenderType for an enum of their own. The layers themselves did not change, so
+            // this is a rename, but RenderType still exists for everything that is not a chunk layer. The
+            // patterns below only match the type in a declaration or a factory call; identifiers such as
+            // getRenderType, ChunkRenderTypeSet and ItemBlockRenderTypes are deliberately left alone.
+            replace("import net.minecraft.client.renderer.RenderType;", "import net.minecraft.client.renderer.chunk.ChunkSectionLayer;")
+            replace("RenderType.solid()", "ChunkSectionLayer.SOLID")
+            replace("RenderType.cutoutMipped()", "ChunkSectionLayer.CUTOUT_MIPPED")
+            replace("RenderType.cutout()", "ChunkSectionLayer.CUTOUT")
+            replace("RenderType.translucent()", "ChunkSectionLayer.TRANSLUCENT")
+            replace("CallbackInfoReturnable<RenderType>", "CallbackInfoReturnable<ChunkSectionLayer>")
+            replace("RenderType ", "ChunkSectionLayer ")
+            replace("RenderType,", "ChunkSectionLayer,")
+
+            // The chunk render region was renamed alongside them.
+            replace("RenderChunkRegion", "RenderSectionRegion")
+        }
     }
 }

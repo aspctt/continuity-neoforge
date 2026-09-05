@@ -90,6 +90,9 @@ sourceSets.main.get().java.exclude(
 // it has no target from 1.21.5 and is left out of both the compile and the mixin config.
 if (usesBlockStateModel) {
     sourceSets.main.get().java.exclude("**/mixin/QuadLighterMixin.java")
+} else {
+    // Item models only became their own system, rather than baked models, in 1.21.4.
+    sourceSets.main.get().java.exclude("**/mixin/BlockModelWrapperMixin.java")
 }
 // 1.21.10 replaced the single pack format number with a supported range, so the field itself differs and not
 // just its value.
@@ -102,6 +105,7 @@ val packFormatField = if (versionAtLeast("1.21.10")) {
 }
 
 val lightingMixin = if (usesBlockStateModel) "" else ",\n    \"QuadLighterMixin\""
+val itemEmissiveMixin = if (usesBlockStateModel) ",\n    \"BlockModelWrapperMixin\"" else ""
 
 dependencies {
 }
@@ -122,6 +126,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_description" to prop("mod_description"),
         "pack_format_field" to packFormatField,
         "lighting_mixin" to lightingMixin,
+        "item_emissive_mixin" to itemEmissiveMixin,
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

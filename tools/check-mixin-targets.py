@@ -98,9 +98,18 @@ root = "versions/%s/build/generated/stonecutter/main/java/me/pepperbell/continui
 if not os.path.isdir(root):
     root = "src/main/java/me/pepperbell/continuity/client/mixin"
 
+# The generated mixin config is the authority on which mixins this target actually applies; the source tree
+# still holds the ones excluded from compilation for this version's band.
+config = "versions/%s/build/resources/main/continuity.mixins.json" % version
+active = None
+if os.path.isfile(config):
+    active = set(re.findall(r'"([A-Za-z0-9_$]+)"', io.open(config, encoding="utf-8").read()))
+
 problems, checked = [], 0
 for name in sorted(os.listdir(root)):
     if not name.endswith(".java"):
+        continue
+    if active is not None and name[:-5] not in active:
         continue
     src = strip_comments(io.open(os.path.join(root, name), encoding="utf-8").read())
     m = re.search(r'@Mixin\(([A-Za-z0-9_.]+)\.class\)', src)

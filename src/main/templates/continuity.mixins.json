@@ -16,7 +16,7 @@
     "ResourceLocationMixin",
     "SpriteLoaderMixin",
     "SpriteSourceListMixin",
-    "TextureAtlasSpriteMixin"${lighting_mixin}
+    "TextureAtlasSpriteMixin"${lighting_mixin}${item_emissive_mixin}
   ],
   "injectors": {
     "defaultRequire": 1

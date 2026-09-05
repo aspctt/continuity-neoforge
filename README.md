@@ -49,27 +49,26 @@ Declared targets and where they stand:
 
 | Target | NeoForge | Model API | Builds | Loads and reads packs | Rendering confirmed |
 |---|---|---|---|---|---|
-| 1.21.1 | 21.1.249 | baked model | yes | yes | not yet |
+| 1.21.1 | 21.1.249 | baked model | yes | yes | connected textures confirmed |
 | 1.21.3 | 21.3.97 | baked model | yes | yes | not yet |
 | 1.21.4 | 21.4.157 | baked model | yes | yes | not yet |
 | 1.21.5 | 21.5.98 | block state model | yes | yes | not yet |
-| 1.21.6 | 21.6.20-beta | block state model | yes | not yet | not yet |
-| 1.21.8 | 21.8.54 | block state model | yes | not yet | not yet |
-| 1.21.10 | 21.10.63 | block state model | yes | not yet | not yet |
-| 1.21.11 | 21.11.45 | block state model | yes | not yet | not yet |
+| 1.21.6 | 21.6.20-beta | block state model | yes | yes | not yet |
+| 1.21.8 | 21.8.54 | block state model | yes | yes | not yet |
+| 1.21.10 | 21.10.63 | block state model | yes | yes | not yet |
+| 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
 
-1.21.1 through 1.21.5 have been started: every mixin applies, both built-in packs register, and the Default
-Connected Textures pack parses into the same 42 quad processors with no errors. None has been looked at in
-game, so the rendering itself is unverified everywhere.
+Every target starts: all mixins apply, both built-in packs register, and the Default Connected Textures pack
+parses into the same 42 quad processors with no errors of Continuity's own.
 
-1.21.6 and later compile and package, and their injection points have been checked against the real bytecode,
-but they have not been launched yet. Treat them as untested until they have been.
+Connected textures have only been confirmed rendering correctly on 1.21.1. The rest are unverified in game.
 
 The 1.21.6 target covers 1.21.7 and the 1.21.8 target covers 1.21.9, since NeoForge only ever published beta
-builds for those two. That pairing assumes they are compatible, which has not been verified either.
+builds for those two. That pairing assumes they are compatible, which has not been verified.
 
-One gap from 1.21.5 onwards: emissive textures apply to blocks but not to items. Item models became a separate
-system in 1.21.4 and nothing wraps them yet on that band.
+Emissive textures are linked on the block atlas only, on every version, which is what upstream does too. From
+1.21.11 items are stitched onto an atlas of their own, so a texture that lives only there has no emissive
+counterpart. Block models drawn as items, which is what emissive packs mostly target, are unaffected.
 
 ### Checking injection points
 
@@ -94,7 +93,7 @@ None of these was another architectural break on the scale of 1.21.5, but 1.21.1
 | 1.21.6 | chunk layers left `RenderType` for a `ChunkSectionLayer` enum of their own, and `RenderChunkRegion` became `RenderSectionRegion` |
 | 1.21.8 | nothing beyond 1.21.6 |
 | 1.21.10 | `AtlasSet` gave way to `SpriteLoader.Preparations`, reload listeners take a shared state rather than a resource manager, and pack metadata replaced `pack_format` with `min_format` and `max_format` |
-| 1.21.11 | `ResourceLocation` became `Identifier`, and `BakedQuad` stopped being backed by a vertex array |
+| 1.21.11 | `ResourceLocation` became `Identifier`, `BakedQuad` stopped being backed by a vertex array, and blocks and items are stitched onto separate atlases |
 
 The 1.21.11 quad change is the substantive one. Positions are now `Vector3fc`, texture coordinates are packed
 into longs, and colours and normals moved into `BakedColors` and `BakedNormals`. The internal layout this port
@@ -112,7 +111,7 @@ exactly the same version. That splits the range into three bands, not one gradie
 | Band | Versions | Model API | State |
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
-| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | 1.21.5 started, 1.21.6 to 1.21.11 build but are untested |
+| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | all targets start, none confirmed rendering |
 | C | 26.1 - 26.2 | `BlockStateModel`, further reworked | needs a third |
 
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has

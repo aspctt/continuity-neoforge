@@ -105,20 +105,20 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 		quadTransform.prepare(collector, state);
 
 		try {
-			for (RenderType renderType : baseRenderTypes) {
-				collector.prepare(renderType);
+			for (RenderType layer : baseRenderTypes) {
+				collector.prepare(layer);
 
 				for (int i = 0; i <= DIRECTIONS.length; i++) {
 					Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
 
-					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, renderType);
+					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, layer);
 					int amount = quads.size();
 					for (int j = 0; j < amount; j++) {
 						BakedQuad quad = quads.get(j);
-						collector.acceptVanilla(quad, cullFace, renderType);
+						collector.acceptVanilla(quad, cullFace, layer);
 
 						workingQuad.fromVanilla(quad, cullFace);
-						quadTransform.transform(workingQuad, renderType);
+						quadTransform.transform(workingQuad, layer);
 					}
 				}
 			}
@@ -144,12 +144,12 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 	}
 
 	@Override
-	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType renderType) {
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType layer) {
 		QuadCollection processed = data.get(EMISSIVE_QUADS);
 		if (processed != null) {
-			return processed.getQuads(side, renderType);
+			return processed.getQuads(side, layer);
 		}
-		return super.getQuads(state, side, rand, data, renderType);
+		return super.getQuads(state, side, rand, data, layer);
 	}
 
 	/**
@@ -219,7 +219,7 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 		protected boolean calculateDefaultLayer;
 		protected boolean isDefaultLayerSolid;
 
-		public void transform(MutableQuad quad, RenderType renderType) {
+		public void transform(MutableQuad quad, RenderType layer) {
 			TextureAtlasSprite sprite = quad.sprite();
 			TextureAtlasSprite emissiveSprite = getEmissiveSprite(quad);
 			if (emissiveSprite == null) {
@@ -228,7 +228,7 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 
 			// An emissive layer drawn over a solid one has to be at least cutout, or the alpha in the emissive
 			// texture is ignored and the whole face lights up.
-			BlendMode blendMode = BlendMode.fromRenderType(renderType);
+			BlendMode blendMode = BlendMode.fromLayer(layer);
 			RenderMaterial emissiveMaterial;
 			if (blendMode == BlendMode.DEFAULT) {
 				if (calculateDefaultLayer) {

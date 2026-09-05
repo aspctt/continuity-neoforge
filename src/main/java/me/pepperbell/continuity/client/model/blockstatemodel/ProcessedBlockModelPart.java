@@ -23,13 +23,13 @@ public class ProcessedBlockModelPart implements BlockModelPart {
 	private static final List<BakedQuad> EMPTY = List.of();
 
 	private final List<BakedQuad>[] quadsByCullFace;
-	private final RenderType renderType;
+	private final RenderType layer;
 	private final TriState ambientOcclusion;
 	private final TextureAtlasSprite particleIcon;
 
-	public ProcessedBlockModelPart(List<BakedQuad>[] quadsByCullFace, RenderType renderType, TriState ambientOcclusion, TextureAtlasSprite particleIcon) {
+	public ProcessedBlockModelPart(List<BakedQuad>[] quadsByCullFace, RenderType layer, TriState ambientOcclusion, TextureAtlasSprite particleIcon) {
 		this.quadsByCullFace = quadsByCullFace;
-		this.renderType = renderType;
+		this.layer = layer;
 		this.ambientOcclusion = ambientOcclusion;
 		this.particleIcon = particleIcon;
 	}
@@ -52,7 +52,7 @@ public class ProcessedBlockModelPart implements BlockModelPart {
 
 	@Override
 	public RenderType getRenderType(BlockState state) {
-		return renderType;
+		return layer;
 	}
 
 	@Override

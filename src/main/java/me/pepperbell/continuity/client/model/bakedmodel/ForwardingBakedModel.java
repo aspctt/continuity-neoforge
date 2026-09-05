@@ -38,8 +38,8 @@ public abstract class ForwardingBakedModel implements BakedModel {
 	}
 
 	@Override
-	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType renderType) {
-		return originalModel.getQuads(state, side, rand, data, renderType);
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType layer) {
+		return originalModel.getQuads(state, side, rand, data, layer);
 	}
 
 	@Override
@@ -58,8 +58,8 @@ public abstract class ForwardingBakedModel implements BakedModel {
 	}
 
 	@Override
-	public TriState useAmbientOcclusion(BlockState state, ModelData data, RenderType renderType) {
-		return originalModel.useAmbientOcclusion(state, data, renderType);
+	public TriState useAmbientOcclusion(BlockState state, ModelData data, RenderType layer) {
+		return originalModel.useAmbientOcclusion(state, data, layer);
 	}
 
 	@Override

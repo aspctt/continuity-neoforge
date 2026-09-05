@@ -19,10 +19,10 @@ import net.neoforged.neoforge.client.ChunkRenderTypeSet;
  * connected textures on one face does not pay to rebuild the other five.
  */
 public final class QuadCollector extends AbstractQuadEmitter {
-	private final Reference2ReferenceLinkedOpenHashMap<RenderType, List<BakedQuad>[]> byRenderType = new Reference2ReferenceLinkedOpenHashMap<>();
+	private final Reference2ReferenceLinkedOpenHashMap<RenderType, List<BakedQuad>[]> byLayer = new Reference2ReferenceLinkedOpenHashMap<>();
 	private final List<BakedQuad>[] all = createBuckets();
 
-	private RenderType defaultRenderType = RenderType.solid();
+	private RenderType defaultLayer = RenderType.solid();
 
 	@SuppressWarnings("unchecked")
 	private static List<BakedQuad>[] createBuckets() {
@@ -32,33 +32,33 @@ public final class QuadCollector extends AbstractQuadEmitter {
 	/**
 	 * Sets the render type that {@link BlendMode#DEFAULT} resolves to, which is the layer the block itself uses.
 	 */
-	public void prepare(RenderType defaultRenderType) {
-		this.defaultRenderType = defaultRenderType;
+	public void prepare(RenderType defaultLayer) {
+		this.defaultLayer = defaultLayer;
 	}
 
 	/**
 	 * Adds an already baked quad without copying it.
 	 */
-	public void acceptVanilla(BakedQuad quad, @Nullable Direction cullFace, RenderType renderType) {
-		add(quad, cullFace, renderType);
+	public void acceptVanilla(BakedQuad quad, @Nullable Direction cullFace, RenderType layer) {
+		add(quad, cullFace, layer);
 	}
 
 	@Override
 	protected void emitDirectly() {
-		RenderType renderType = material().blendMode().getRenderType();
-		if (renderType == null) {
-			renderType = defaultRenderType;
+		RenderType layer = material().blendMode().getLayer();
+		if (layer == null) {
+			layer = defaultLayer;
 		}
-		add(toBakedQuad(), cullFace(), renderType);
+		add(toBakedQuad(), cullFace(), layer);
 	}
 
-	private void add(BakedQuad quad, @Nullable Direction cullFace, RenderType renderType) {
+	private void add(BakedQuad quad, @Nullable Direction cullFace, RenderType layer) {
 		int index = QuadCollection.bucketIndex(cullFace);
 
-		List<BakedQuad>[] buckets = byRenderType.get(renderType);
+		List<BakedQuad>[] buckets = byLayer.get(layer);
 		if (buckets == null) {
 			buckets = createBuckets();
-			byRenderType.put(renderType, buckets);
+			byLayer.put(layer, buckets);
 		}
 		bucket(buckets, index).add(quad);
 		bucket(all, index).add(quad);
@@ -74,7 +74,7 @@ public final class QuadCollector extends AbstractQuadEmitter {
 	}
 
 	public boolean isEmpty() {
-		return byRenderType.isEmpty();
+		return byLayer.isEmpty();
 	}
 
 	/**
@@ -82,16 +82,16 @@ public final class QuadCollector extends AbstractQuadEmitter {
 	 */
 	public QuadCollection build() {
 		//? if <1.21.5 {
-		ChunkRenderTypeSet renderTypes = ChunkRenderTypeSet.of(byRenderType.keySet().toArray(RenderType[]::new));
-		QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byRenderType), all.clone(), renderTypes);
+		ChunkRenderTypeSet renderTypes = ChunkRenderTypeSet.of(byLayer.keySet().toArray(RenderType[]::new));
+		QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byLayer), all.clone(), renderTypes);
 		//?} else
-		/*QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byRenderType), all.clone());*/
+		/*QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byLayer), all.clone());*/
 		reset();
 		return collection;
 	}
 
 	public void reset() {
-		byRenderType.clear();
+		byLayer.clear();
 		for (int i = 0; i < all.length; i++) {
 			all[i] = null;
 		}

@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.chunk.RenderChunkRegion;
 import net.minecraft.world.level.Level;
 
 @Mixin(RenderChunkRegion.class)
-public interface RenderChunkRegionAccessor {
+public interface RenderRegionAccessor {
 	@Accessor("level")
 	Level getLevel();
 }

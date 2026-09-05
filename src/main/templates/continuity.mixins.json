@@ -12,7 +12,7 @@
     "ModelManagerMixin",
     "MultiPackResourceManagerMixin",
     "ReloadableResourceManagerAccessor",
-    "RenderChunkRegionAccessor",
+    "RenderRegionAccessor",
     "ResourceLocationMixin",
     "SpriteLoaderMixin",
     "SpriteSourceListMixin",

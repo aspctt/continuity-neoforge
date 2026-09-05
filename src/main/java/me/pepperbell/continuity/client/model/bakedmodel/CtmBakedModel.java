@@ -116,8 +116,8 @@ public class CtmBakedModel extends ForwardingBakedModel {
 		try {
 			BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
 
-			for (RenderType renderType : baseRenderTypes) {
-				collector.prepare(renderType);
+			for (RenderType layer : baseRenderTypes) {
+				collector.prepare(layer);
 
 				for (int i = 0; i <= DIRECTIONS.length; i++) {
 					Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
@@ -133,7 +133,7 @@ public class CtmBakedModel extends ForwardingBakedModel {
 					}
 
 					random.setSeed(seed);
-					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, renderType);
+					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, layer);
 					int amount = quads.size();
 					for (int j = 0; j < amount; j++) {
 						BakedQuad quad = quads.get(j);
@@ -141,10 +141,10 @@ public class CtmBakedModel extends ForwardingBakedModel {
 
 						if (quadTransform.transform(workingQuad)) {
 							if (workingQuad.isDirty()) {
-								collector.acceptVanilla(workingQuad.toBakedQuad(), workingQuad.cullFace(), renderType);
+								collector.acceptVanilla(workingQuad.toBakedQuad(), workingQuad.cullFace(), layer);
 								processedAnything = true;
 							} else {
-								collector.acceptVanilla(quad, cullFace, renderType);
+								collector.acceptVanilla(quad, cullFace, layer);
 							}
 						} else {
 							processedAnything = true;
@@ -182,12 +182,12 @@ public class CtmBakedModel extends ForwardingBakedModel {
 	}
 
 	@Override
-	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType renderType) {
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData data, @Nullable RenderType layer) {
 		QuadCollection processed = data.get(PROCESSED_QUADS);
 		if (processed != null) {
-			return processed.getQuads(side, renderType);
+			return processed.getQuads(side, layer);
 		}
-		return super.getQuads(state, side, rand, data, renderType);
+		return super.getQuads(state, side, rand, data, layer);
 	}
 
 	protected Function<TextureAtlasSprite, QuadProcessors.Slice> getSliceFunc(BlockState state) {

@@ -88,7 +88,7 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 
 		TriState ambientOcclusion = sourceParts.get(0).ambientOcclusion();
 		TextureAtlasSprite particleIcon = sourceParts.get(0).particleIcon();
-		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : processed.byRenderType().entrySet()) {
+		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : processed.byLayer().entrySet()) {
 			parts.add(new ProcessedBlockModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
 		}
 	}

@@ -24,7 +24,7 @@ public enum BlendMode {
 	 * {@return the render type this blend mode maps to, or {@code null} for {@link #DEFAULT}}
 	 */
 	@Nullable
-	public RenderType getRenderType() {
+	public RenderType getLayer() {
 		return switch (this) {
 			case DEFAULT -> null;
 			case SOLID -> RenderType.solid();
@@ -34,20 +34,20 @@ public enum BlendMode {
 		};
 	}
 
-	public static BlendMode fromRenderType(@Nullable RenderType renderType) {
-		if (renderType == null) {
+	public static BlendMode fromLayer(@Nullable RenderType layer) {
+		if (layer == null) {
 			return DEFAULT;
 		}
-		if (renderType == RenderType.solid()) {
+		if (layer == RenderType.solid()) {
 			return SOLID;
 		}
-		if (renderType == RenderType.cutoutMipped()) {
+		if (layer == RenderType.cutoutMipped()) {
 			return CUTOUT_MIPPED;
 		}
-		if (renderType == RenderType.cutout()) {
+		if (layer == RenderType.cutout()) {
 			return CUTOUT;
 		}
-		if (renderType == RenderType.translucent()) {
+		if (layer == RenderType.translucent()) {
 			return TRANSLUCENT;
 		}
 		return DEFAULT;

@@ -84,7 +84,7 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 
 		TriState ambientOcclusion = TriState.FALSE;
 		TextureAtlasSprite particleIcon = sourceParts.get(0).particleIcon();
-		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : emissive.byRenderType().entrySet()) {
+		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : emissive.byLayer().entrySet()) {
 			parts.add(new ProcessedBlockModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
 		}
 	}
@@ -99,8 +99,8 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 		int partCount = sourceParts.size();
 		for (int p = 0; p < partCount; p++) {
 			BlockModelPart part = sourceParts.get(p);
-			RenderType renderType = part.getRenderType(state);
-			collector.prepare(renderType);
+			RenderType layer = part.getRenderType(state);
+			collector.prepare(layer);
 
 			for (int i = 0; i <= DIRECTIONS.length; i++) {
 				Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
@@ -118,7 +118,7 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 
 					// An emissive layer drawn over a solid one has to be at least cutout, or the alpha in the
 					// emissive texture is ignored and the whole face lights up.
-					BlendMode blendMode = BlendMode.fromRenderType(renderType);
+					BlendMode blendMode = BlendMode.fromLayer(layer);
 					RenderMaterial emissiveMaterial;
 					if (blendMode == BlendMode.DEFAULT || blendMode == BlendMode.SOLID) {
 						emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;

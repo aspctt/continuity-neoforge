@@ -2,7 +2,7 @@ package me.pepperbell.continuity.client.util;
 
 import org.jetbrains.annotations.Nullable;
 
-import me.pepperbell.continuity.client.mixin.RenderChunkRegionAccessor;
+import me.pepperbell.continuity.client.mixin.RenderRegionAccessor;
 import me.pepperbell.continuity.client.render.BlendMode;
 import me.pepperbell.continuity.client.render.MaterialFinder;
 import me.pepperbell.continuity.client.render.RenderMaterial;
@@ -67,7 +67,7 @@ public final class RenderUtil {
 		if (blockView instanceof LevelReader levelReader) {
 			level = levelReader;
 		} else if (blockView instanceof RenderChunkRegion region) {
-			level = ((RenderChunkRegionAccessor) region).getLevel();
+			level = ((RenderRegionAccessor) region).getLevel();
 		} else {
 			return null;
 		}

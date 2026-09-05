@@ -24,20 +24,20 @@ public final class QuadCollection {
 
 	private static final List<BakedQuad> EMPTY = List.of();
 
-	private final Map<RenderType, List<BakedQuad>[]> byRenderType;
+	private final Map<RenderType, List<BakedQuad>[]> byLayer;
 	private final List<BakedQuad>[] all;
 	//? if <1.21.5
 	private final ChunkRenderTypeSet renderTypes;
 
 	//? if <1.21.5 {
-	QuadCollection(Map<RenderType, List<BakedQuad>[]> byRenderType, List<BakedQuad>[] all, ChunkRenderTypeSet renderTypes) {
-		this.byRenderType = byRenderType;
+	QuadCollection(Map<RenderType, List<BakedQuad>[]> byLayer, List<BakedQuad>[] all, ChunkRenderTypeSet renderTypes) {
+		this.byLayer = byLayer;
 		this.all = all;
 		this.renderTypes = renderTypes;
 	}
 	//?} else {
-	/*QuadCollection(Map<RenderType, List<BakedQuad>[]> byRenderType, List<BakedQuad>[] all) {
-		this.byRenderType = byRenderType;
+	/*QuadCollection(Map<RenderType, List<BakedQuad>[]> byLayer, List<BakedQuad>[] all) {
+		this.byLayer = byLayer;
 		this.all = all;
 	}
 	*///?}
@@ -45,20 +45,20 @@ public final class QuadCollection {
 	/**
 	 * {@return the quads grouped by the render type they belong to}
 	 */
-	public Map<RenderType, List<BakedQuad>[]> byRenderType() {
-		return byRenderType;
+	public Map<RenderType, List<BakedQuad>[]> byLayer() {
+		return byLayer;
 	}
 
 	public static int bucketIndex(@Nullable Direction cullFace) {
 		return cullFace == null ? NO_CULL_FACE_INDEX : cullFace.ordinal();
 	}
 
-	public List<BakedQuad> getQuads(@Nullable Direction cullFace, @Nullable RenderType renderType) {
+	public List<BakedQuad> getQuads(@Nullable Direction cullFace, @Nullable RenderType layer) {
 		List<BakedQuad>[] buckets;
-		if (renderType == null) {
+		if (layer == null) {
 			buckets = all;
 		} else {
-			buckets = byRenderType.get(renderType);
+			buckets = byLayer.get(layer);
 			if (buckets == null) {
 				return EMPTY;
 			}

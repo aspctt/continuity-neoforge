@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
+//? if <26.1
 import net.minecraft.client.renderer.block.BlockModelShaper;
 //? if <1.21.5
 import net.minecraft.client.resources.model.BakedModel;
@@ -17,7 +18,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 
 public final class SpriteCalculator {
+	//? if <26.1 {
 	private static final BlockModelShaper MODELS = Minecraft.getInstance().getModelManager().getBlockModelShaper();
+	//?} else {
+	/*private static final net.minecraft.client.renderer.block.BlockStateModelSet MODELS = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+	*///?}
 
 	private static final EnumMap<Direction, SpriteCache> SPRITE_CACHES = new EnumMap<>(Direction.class);
 	static {
@@ -33,8 +38,10 @@ public final class SpriteCalculator {
 	public static TextureAtlasSprite calculateSprite(BlockState state, Direction face, Supplier<RandomSource> randomSupplier) {
 		//? if <1.21.5 {
 		BakedModel model = MODELS.getBlockModel(state);
-		//?} else
-		/*net.minecraft.client.renderer.block.model.BlockStateModel model = MODELS.getBlockModel(state);*/
+		//?} elif <26.1 {
+		/*net.minecraft.client.renderer.block.model.BlockStateModel model = MODELS.getBlockModel(state);
+		*///?} else
+		/*net.minecraft.client.renderer.block.dispatch.BlockStateModel model = MODELS.get(state);*/
 		try {
 			//? if <1.21.5 {
 			List<BakedQuad> quads = model.getQuads(state, face, randomSupplier.get());
@@ -43,8 +50,10 @@ public final class SpriteCalculator {
 			if (!quads.isEmpty()) {
 				//? if <1.21.5 {
 				return quads.get(0).getSprite();
-				//?} else
-				/*return quads.get(0).sprite();*/
+				//?} elif <26.1 {
+				/*return quads.get(0).sprite();
+				*///?} else
+				/*return quads.get(0).materialInfo().sprite();*/
 			}
 			//? if <1.21.5 {
 			quads = model.getQuads(state, null, randomSupplier.get());
@@ -57,9 +66,12 @@ public final class SpriteCalculator {
 					//? if <1.21.5 {
 					if (quad.getDirection() == face) {
 						return quad.getSprite();
-					//?} else {
+					//?} elif <26.1 {
 					/*if (quad.direction() == face) {
 						return quad.sprite();
+					*///?} else {
+					/*if (quad.direction() == face) {
+						return quad.materialInfo().sprite();
 					*///?}
 					}
 				}
@@ -69,8 +81,10 @@ public final class SpriteCalculator {
 		}
 		//? if <1.21.5 {
 		return model.getParticleIcon();
-		//?} else
-		/*return model.particleIcon();*/
+		//?} elif <26.1 {
+		/*return model.particleIcon();
+		*///?} else
+		/*return model.particleMaterial().sprite();*/
 	}
 
 	public static void clearCache() {

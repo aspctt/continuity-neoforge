@@ -74,5 +74,20 @@ stonecutter parameters {
             replace("net.minecraft.client.renderer.RenderType", "net.minecraft.client.renderer.rendertype.RenderType")
             replace("Lnet/minecraft/client/renderer/RenderType;", "Lnet/minecraft/client/renderer/rendertype/RenderType;")
         }
+
+        string(current.parsed >= "26.1") {
+            // 26.1 reorganised the client model packages. The types keep their shape, so these are import
+            // moves rather than API changes; only the model part was renamed as well.
+            replace("import net.minecraft.client.renderer.block.model.BakedQuad;", "import net.minecraft.client.resources.model.geometry.BakedQuad;")
+            replace("import net.minecraft.client.renderer.block.model.BlockStateModel;", "import net.minecraft.client.renderer.block.dispatch.BlockStateModel;")
+            replace("import net.minecraft.client.renderer.block.model.BlockModelPart;", "import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;")
+            replace("import net.minecraft.client.resources.model.Material;", "import net.minecraft.client.resources.model.sprite.Material;")
+            replace("import net.minecraft.world.level.BlockAndTintGetter;", "import net.minecraft.client.renderer.block.BlockAndTintGetter;")
+
+            // BlockModelPart became BlockStateModelPart. This mod's own part is named ProcessedModelPart so
+            // that these patterns cannot catch it.
+            replace("BlockModelPart ", "BlockStateModelPart ")
+            replace("BlockModelPart>", "BlockStateModelPart>")
+        }
     }
 }

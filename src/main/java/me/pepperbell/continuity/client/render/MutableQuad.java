@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.jetbrains.annotations.Nullable;
 
+//? if <26.1
 import net.minecraft.client.renderer.LightTexture;
 //? if <1.21.5
 import me.pepperbell.continuity.client.model.bakedmodel.EmissiveBakedQuad;
@@ -17,6 +18,11 @@ import net.neoforged.neoforge.client.model.quad.BakedColors;
 import net.neoforged.neoforge.client.model.quad.BakedNormals;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+*///?}
+//? if >=26.1 {
+/*import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 *///?}
 
 /**
@@ -40,6 +46,23 @@ public class MutableQuad implements MutableQuadView {
 	/** Set by every mutator, so an untouched quad can be forwarded by reference instead of rebuilt. */
 	protected boolean dirty;
 
+	//? if >=26.1 {
+	/*// The material of the quad this one was loaded from, if any. 26.1 moved the chunk layer and the item render
+	// type onto the quad, and neither can be worked out from the vertex data, so they are carried across rather
+	// than guessed at when the quad is baked again.
+	@Nullable
+	protected BakedQuad.MaterialInfo sourceMaterialInfo;
+
+	// The layer to bake into, once something that knows the block has resolved what DEFAULT means.
+	@Nullable
+	protected ChunkSectionLayer layer;
+
+	public MutableQuad layer(@Nullable ChunkSectionLayer layer) {
+		this.layer = layer;
+		return this;
+	}
+	*///?}
+
 	public int[] data() {
 		return data;
 	}
@@ -57,6 +80,10 @@ public class MutableQuad implements MutableQuadView {
 		nominalFace = null;
 		tag = 0;
 		dirty = false;
+		//? if >=26.1 {
+		/*sourceMaterialInfo = null;
+		layer = null;
+		*///?}
 	}
 
 	// Reading
@@ -285,6 +312,10 @@ public class MutableQuad implements MutableQuadView {
 			material = quad.material;
 			colorIndex = quad.colorIndex;
 			cullFace = quad.cullFace;
+			//? if >=26.1 {
+			/*sourceMaterialInfo = quad.sourceMaterialInfo;
+			layer = quad.layer;
+			*///?}
 			lightFace = quad.lightFace;
 			nominalFace = quad.nominalFace;
 			tag = quad.tag;
@@ -328,7 +359,7 @@ public class MutableQuad implements MutableQuadView {
 		colorIndex = quad.tintIndex();
 		lightFace = quad.direction();
 		nominalFace = quad.direction();
-		*///?} else {
+		*///?} elif <26.1 {
 		/*// 1.21.11 replaced the vertex array with structured fields, so the data has to be unpacked rather than
 		// copied. The layout this class keeps internally is unchanged.
 		for (int i = 0; i < VERTEX_COUNT; i++) {
@@ -344,14 +375,34 @@ public class MutableQuad implements MutableQuadView {
 		colorIndex = quad.tintIndex();
 		lightFace = quad.direction();
 		nominalFace = quad.direction();
+		*///?} else {
+		/*// 26.1 gathered the sprite, layer, tint and shading into one material record.
+		for (int i = 0; i < VERTEX_COUNT; i++) {
+			Vector3fc position = quad.position(i);
+			pos(i, position.x(), position.y(), position.z());
+			long packedUV = quad.packedUV(i);
+			uv(i, UVPair.unpackU(packedUV), UVPair.unpackV(packedUV));
+			color(i, quad.bakedColors().color(i));
+			data[i * VERTEX_STRIDE + OFFSET_LIGHTMAP] = 0;
+			data[i * VERTEX_STRIDE + OFFSET_NORMAL] = quad.bakedNormals().normal(i);
+		}
+		BakedQuad.MaterialInfo materialInfo = quad.materialInfo();
+		sourceMaterialInfo = materialInfo;
+		layer = materialInfo.layer();
+		sprite = materialInfo.sprite();
+		colorIndex = materialInfo.tintIndex();
+		lightFace = quad.direction();
+		nominalFace = quad.direction();
 		*///?}
 		this.cullFace = cullFace;
 		// The blend mode stays DEFAULT so the quad lands back in whichever render type it came from, even if that is
 		// a modded chunk layer this abstraction has no name for.
 		//? if <1.21.5 {
 		material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.isShade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
-		//?} else
-		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.shade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);*/
+		//?} elif <26.1 {
+		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.shade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
+		*///?} else
+		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !sourceMaterialInfo.shade(), sourceMaterialInfo.ambientOcclusion() ? TriState.DEFAULT : TriState.FALSE);*/
 		tag = 0;
 		dirty = false;
 		return this;
@@ -387,7 +438,7 @@ public class MutableQuad implements MutableQuadView {
 		}
 		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);
 		*///?}
-		//? if >=1.21.11 {
+		//? if >=1.21.11 && <26.1 {
 		/*// The renderer folds the light emission into the lightmap itself here, so there is no vertex lightmap
 		// left to force to full bright.
 		return new BakedQuad(
@@ -412,6 +463,25 @@ public class MutableQuad implements MutableQuadView {
 				BakedColors.of(color(0), color(1), color(2), color(3)),
 				hasAmbientOcclusion);
 		*///?}
+		//? if >=26.1 {
+		/*return new BakedQuad(
+				new Vector3f(x(0), y(0), z(0)),
+				new Vector3f(x(1), y(1), z(1)),
+				new Vector3f(x(2), y(2), z(2)),
+				new Vector3f(x(3), y(3), z(3)),
+				UVPair.pack(u(0), v(0)),
+				UVPair.pack(u(1), v(1)),
+				UVPair.pack(u(2), v(2)),
+				UVPair.pack(u(3), v(3)),
+				lightFace,
+				materialInfo(shade, hasAmbientOcclusion),
+				BakedNormals.of(
+						data[OFFSET_NORMAL],
+						data[VERTEX_STRIDE + OFFSET_NORMAL],
+						data[2 * VERTEX_STRIDE + OFFSET_NORMAL],
+						data[3 * VERTEX_STRIDE + OFFSET_NORMAL]),
+				BakedColors.of(color(0), color(1), color(2), color(3)));
+		*///?}
 		//? if <1.21.5 {
 		if (material.emissive()) {
 			// Vanilla block rendering overwrites the baked light, so the marker type is what actually drives the
@@ -431,6 +501,32 @@ public class MutableQuad implements MutableQuadView {
 		/*return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);*/
 		//?}
 	}
+
+	//? if >=26.1 {
+	/*// The layer set by whatever resolved DEFAULT wins, then the layer of the quad this one came from, and only
+	// failing both does it fall back to solid. The item render type is carried across untouched, because nothing
+	// here knows enough to work one out.
+	private BakedQuad.MaterialInfo materialInfo(boolean shade, boolean ambientOcclusion) {
+		ChunkSectionLayer bakedLayer = material.blendMode().getLayer();
+		if (bakedLayer == null) {
+			bakedLayer = layer;
+		}
+		if (bakedLayer == null) {
+			bakedLayer = sourceMaterialInfo == null ? ChunkSectionLayer.SOLID : sourceMaterialInfo.layer();
+		}
+
+		// Inferred rather than named, because the plain RenderType import is rewritten to the chunk layer from
+		// 1.21.6 and there is nothing left to spell this type with.
+		var itemRenderType = sourceMaterialInfo != null
+				? sourceMaterialInfo.itemRenderType()
+				: sprite != null && sprite.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS)
+						? (bakedLayer.translucent() ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet())
+						: (bakedLayer.translucent() ? Sheets.translucentItemSheet() : Sheets.cutoutItemSheet());
+
+		int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;
+		return new BakedQuad.MaterialInfo(sprite, bakedLayer, itemRenderType, colorIndex, shade, lightEmission, ambientOcclusion);
+	}
+	*///?}
 
 	private static float unpackNormalComponent(int packed, int shift) {
 		return ((byte) ((packed >> shift) & 0xFF)) / 127.0f;

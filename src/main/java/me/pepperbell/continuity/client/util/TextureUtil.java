@@ -10,7 +10,10 @@ public final class TextureUtil {
 	public static final Material MISSING_SPRITE_ID = toSpriteId(MissingTextureAtlasSprite.getLocation());
 
 	public static Material toSpriteId(ResourceLocation id) {
+		//? if <26.1 {
 		return new Material(TextureAtlas.LOCATION_BLOCKS, id);
+		//?} else
+		/*return new Material(id);*/
 	}
 
 	public static boolean isMissingSprite(TextureAtlasSprite sprite) {

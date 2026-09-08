@@ -45,11 +45,22 @@ public final class QuadCollector extends AbstractQuadEmitter {
 
 	@Override
 	protected void emitDirectly() {
+		//? if <26.1 {
 		RenderType layer = material().blendMode().getLayer();
 		if (layer == null) {
 			layer = defaultLayer;
 		}
 		add(toBakedQuad(), cullFace(), layer);
+		//?} else {
+		/*// From 26.1 the layer belongs to the quad, so a quad copied from another keeps the layer it came from
+		// and only a quad with no history at all falls back to the one this collector was prepared with.
+		ChunkSectionLayer resolved = material().blendMode().getLayer();
+		if (resolved == null) {
+			resolved = this.layer != null ? this.layer : defaultLayer;
+		}
+		layer(resolved);
+		add(toBakedQuad(), cullFace(), resolved);
+		*///?}
 	}
 
 	private void add(BakedQuad quad, @Nullable Direction cullFace, RenderType layer) {

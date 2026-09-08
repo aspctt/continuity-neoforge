@@ -23,7 +23,9 @@ public final class EmissiveQuads {
 	public static boolean isEmissive(BakedQuad quad) {
 		//? if <1.21.5 {
 		return quad instanceof EmissiveBakedQuad;
-		//?} else
-		/*return quad.lightEmission() >= EMISSIVE_LIGHT;*/
+		//?} elif <26.1 {
+		/*return quad.lightEmission() >= EMISSIVE_LIGHT;
+		*///?} else
+		/*return quad.materialInfo().lightEmission() >= EMISSIVE_LIGHT;*/
 	}
 }

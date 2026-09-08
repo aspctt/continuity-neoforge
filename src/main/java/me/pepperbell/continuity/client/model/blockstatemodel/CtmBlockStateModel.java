@@ -16,6 +16,7 @@ import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;
 import me.pepperbell.continuity.client.render.QuadCollector;
 import me.pepperbell.continuity.impl.client.ProcessingContextImpl;
+//? if <26.1
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -87,10 +88,15 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 		}
 
 		TriState ambientOcclusion = sourceParts.get(0).ambientOcclusion();
+		//? if <26.1 {
 		TextureAtlasSprite particleIcon = sourceParts.get(0).particleIcon();
 		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : processed.byLayer().entrySet()) {
-			parts.add(new ProcessedBlockModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
+			parts.add(new ProcessedModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
 		}
+		//?} else {
+		/*// One part covers every layer from 26.1, because each quad names its own.
+		parts.add(new ProcessedModelPart(processed.allQuads(), ambientOcclusion, sourceParts.get(0).particleMaterial()));
+		*///?}
 	}
 
 	@Nullable
@@ -114,6 +120,7 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 			int partCount = sourceParts.size();
 			for (int p = 0; p < partCount; p++) {
 				BlockModelPart part = sourceParts.get(p);
+				//? if <26.1
 				collector.prepare(part.getRenderType(state));
 
 				for (int i = 0; i <= DIRECTIONS.length; i++) {
@@ -127,10 +134,18 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 
 						if (quadTransform.transform(workingQuad)) {
 							if (workingQuad.isDirty()) {
+								//? if <26.1 {
 								collector.acceptVanilla(workingQuad.toBakedQuad(), workingQuad.cullFace(), part.getRenderType(state));
+								//?} else {
+								/*BakedQuad bakedQuad = workingQuad.toBakedQuad();
+								collector.acceptVanilla(bakedQuad, workingQuad.cullFace(), bakedQuad.materialInfo().layer());
+								*///?}
 								processedAnything = true;
 							} else {
+								//? if <26.1 {
 								collector.acceptVanilla(quad, cullFace, part.getRenderType(state));
+								//?} else
+								/*collector.acceptVanilla(quad, cullFace, quad.materialInfo().layer());*/
 							}
 						} else {
 							processedAnything = true;
@@ -139,7 +154,11 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 				}
 			}
 
+			//? if <26.1 {
 			collector.prepare(ItemBlockRenderTypes.getChunkRenderType(state));
+			// Overlay quads carry the layer of whatever they were copied from, so there is nothing to prepare.
+			//?} else
+			/*collector.prepare(ChunkSectionLayer.SOLID);*/
 			quadTransform.processingContext.outputTo(collector);
 			processedAnything |= quadTransform.processingContext.producedQuads();
 		} finally {

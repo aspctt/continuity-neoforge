@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -38,6 +39,7 @@ public abstract class ForwardingBlockStateModel implements BlockStateModel {
 		return originalModel.createGeometryKey(level, pos, state, random);
 	}
 
+	//? if <26.1 {
 	@Override
 	public TextureAtlasSprite particleIcon() {
 		return originalModel.particleIcon();
@@ -47,4 +49,27 @@ public abstract class ForwardingBlockStateModel implements BlockStateModel {
 	public TextureAtlasSprite particleIcon(BlockAndTintGetter level, BlockPos pos, BlockState state) {
 		return originalModel.particleIcon(level, pos, state);
 	}
+	//?} else {
+	/*// 26.1 asks for the particle material rather than the sprite, and added the material flags that replaced
+	// the per part chunk layer.
+	@Override
+	public Material.Baked particleMaterial() {
+		return originalModel.particleMaterial();
+	}
+
+	@Override
+	public Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+		return originalModel.particleMaterial(level, pos, state);
+	}
+
+	@Override
+	public int materialFlags() {
+		return originalModel.materialFlags();
+	}
+
+	@Override
+	public int materialFlags(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+		return originalModel.materialFlags(level, pos, state);
+	}
+	*///?}
 }

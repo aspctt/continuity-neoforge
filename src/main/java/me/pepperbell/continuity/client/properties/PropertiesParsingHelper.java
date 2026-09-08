@@ -246,9 +246,12 @@ public final class PropertiesParsingHelper {
 						}
 
 						predicateMap.put(block, state -> {
-							Map<Property<?>, Comparable<?>> targetValueMap = state.getValues();
 							for (Map.Entry<Property<?>, ObjectOpenHashSet<Comparable<?>>> entry : entryArray) {
-								Comparable<?> targetValue = targetValueMap.get(entry.getKey());
+								//? if <26.1 {
+								Comparable<?> targetValue = state.getValues().get(entry.getKey());
+								// 26.1 hands the values back as a stream, so each property is read on its own.
+								//?} else
+								/*Comparable<?> targetValue = state.getOptionalValue(entry.getKey()).orElse(null);*/
 								if (targetValue != null) {
 									if (!entry.getValue().contains(targetValue)) {
 										return false;

@@ -83,10 +83,14 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 		}
 
 		TriState ambientOcclusion = TriState.FALSE;
+		//? if <26.1 {
 		TextureAtlasSprite particleIcon = sourceParts.get(0).particleIcon();
 		for (Map.Entry<RenderType, List<BakedQuad>[]> entry : emissive.byLayer().entrySet()) {
-			parts.add(new ProcessedBlockModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
+			parts.add(new ProcessedModelPart(entry.getValue(), entry.getKey(), ambientOcclusion, particleIcon));
 		}
+		//?} else {
+		/*parts.add(new ProcessedModelPart(emissive.allQuads(), ambientOcclusion, sourceParts.get(0).particleMaterial()));
+		*///?}
 	}
 
 	@Nullable
@@ -99,8 +103,10 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 		int partCount = sourceParts.size();
 		for (int p = 0; p < partCount; p++) {
 			BlockModelPart part = sourceParts.get(p);
+			//? if <26.1 {
 			RenderType layer = part.getRenderType(state);
 			collector.prepare(layer);
+			//?}
 
 			for (int i = 0; i <= DIRECTIONS.length; i++) {
 				Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
@@ -118,7 +124,10 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 
 					// An emissive layer drawn over a solid one has to be at least cutout, or the alpha in the
 					// emissive texture is ignored and the whole face lights up.
+					//? if <26.1 {
 					BlendMode blendMode = BlendMode.fromLayer(layer);
+					//?} else
+					/*BlendMode blendMode = BlendMode.fromLayer(quads.get(j).materialInfo().layer());*/
 					RenderMaterial emissiveMaterial;
 					if (blendMode == BlendMode.DEFAULT || blendMode == BlendMode.SOLID) {
 						emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;

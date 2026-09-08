@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import net.minecraft.client.Minecraft;
+//? if <26.1 {
 import net.minecraft.client.gui.GuiGraphics;
+//?} else
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;*/
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.Button;
@@ -59,11 +62,19 @@ public class ContinuityConfigScreen extends Screen {
 				.build());
 	}
 
+	//? if <26.1 {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
 		guiGraphics.drawCenteredString(font, title, width / 2, 30, 0xFFFFFF);
 	}
+	//?} else {
+	/*@Override
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+		super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+		graphics.centeredText(font, title, width / 2, 30, 0xFFFFFF);
+	}
+	*///?}
 
 	@Override
 	public void onClose() {

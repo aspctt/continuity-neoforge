@@ -49,6 +49,13 @@ public final class QuadCollection {
 		return byLayer;
 	}
 
+	/**
+	 * {@return every quad collected, bucketed by cull face and not split by layer}
+	 */
+	public List<BakedQuad>[] allQuads() {
+		return all;
+	}
+
 	public static int bucketIndex(@Nullable Direction cullFace) {
 		return cullFace == null ? NO_CULL_FACE_INDEX : cullFace.ordinal();
 	}

@@ -107,8 +107,14 @@ public class CtmPropertiesLoader {
 			LoadingContainer<T> container = new LoadingContainer<>(loader, ctmProperties);
 			containers.add(container);
 			for (Material spriteId : ctmProperties.getTextureDependencies()) {
+				//? if <26.1 {
 				Set<ResourceLocation> atlasTextureDependencies = textureDependencies.computeIfAbsent(spriteId.atlasLocation(), id -> new ObjectOpenHashSet<>());
 				atlasTextureDependencies.add(spriteId.texture());
+				//?} else {
+				/*// 26.1 dropped the atlas from a material, and everything this mod adds belongs to the block atlas.
+				Set<ResourceLocation> atlasTextureDependencies = textureDependencies.computeIfAbsent(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS, id -> new ObjectOpenHashSet<>());
+				atlasTextureDependencies.add(spriteId.sprite());
+				*///?}
 			}
 		}
 	}

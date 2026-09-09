@@ -36,9 +36,13 @@ public class ContinuityConfigScreen extends Screen {
 	protected void init() {
 		Value<Boolean> connectedTextures = Value.of(config.connectedTextures, Value.Flag.RELOAD_WORLD_RENDERER);
 		Value<Boolean> emissiveTextures = Value.of(config.emissiveTextures, Value.Flag.RELOAD_WORLD_RENDERER);
+		//? if <26.1 {
 		Value<Boolean> customBlockLayers = Value.of(config.customBlockLayers, Value.Flag.RELOAD_WORLD_RENDERER);
 
 		values = List.of(connectedTextures, emissiveTextures, customBlockLayers);
+		//?} else {
+		/*values = List.of(connectedTextures, emissiveTextures);
+		*///?}
 
 		addRenderableWidget(startBooleanValueButton(connectedTextures)
 				.bounds(width / 2 - 100 - 110, height / 2 - 10 - 12, 200, 20)
@@ -46,9 +50,11 @@ public class ContinuityConfigScreen extends Screen {
 		addRenderableWidget(startBooleanValueButton(emissiveTextures)
 				.bounds(width / 2 - 100 + 110, height / 2 - 10 - 12, 200, 20)
 				.build());
+		//? if <26.1 {
 		addRenderableWidget(startBooleanValueButton(customBlockLayers)
 				.bounds(width / 2 - 100 - 110, height / 2 - 10 + 12, 200, 20)
 				.build());
+		//?}
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE,
 				button -> {
@@ -78,7 +84,10 @@ public class ContinuityConfigScreen extends Screen {
 
 	@Override
 	public void onClose() {
+		//? if <26.2 {
 		minecraft.setScreen(parent);
+		//?} else
+		/*minecraft.setScreenAndShow(parent);*/
 	}
 
 	private void saveValues() {
@@ -171,7 +180,15 @@ public class ContinuityConfigScreen extends Screen {
 			RELOAD_WORLD_RENDERER {
 				@Override
 				public void onSave() {
+					//? if <26.2 {
 					Minecraft.getInstance().levelRenderer.allChanged();
+					//?} else {
+					/*// 26.2 asks for the state the rebuild needs rather than reaching for it itself.
+					Minecraft client = Minecraft.getInstance();
+					if (client.level != null) {
+						client.levelRenderer.invalidateCompiledGeometry(client.level, client.options, client.gameRenderer.mainCamera(), client.getBlockColors());
+					}
+					*///?}
 				}
 			};
 

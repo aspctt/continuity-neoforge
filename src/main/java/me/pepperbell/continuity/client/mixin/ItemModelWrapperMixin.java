@@ -24,7 +24,10 @@ import me.pepperbell.continuity.client.render.RenderMaterial;
 import me.pepperbell.continuity.client.util.QuadUtil;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+//? if <26.1 {
 import net.minecraft.client.renderer.item.BlockModelWrapper;
+//?} else
+/*import net.minecraft.client.renderer.item.CuboidItemModelWrapper;*/
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -43,8 +46,11 @@ import net.minecraft.world.entity.LivingEntity;
  * them. The copies are worked out once, the first time the model is drawn, and appended per draw after that, so
  * turning the setting off takes effect without a resource reload.
  */
+//? if <26.1 {
 @Mixin(BlockModelWrapper.class)
-abstract class BlockModelWrapperMixin {
+//?} else
+/*@Mixin(CuboidItemModelWrapper.class)*/
+abstract class ItemModelWrapperMixin {
 	@Unique
 	private static final RenderMaterial CONTINUITY$EMISSIVE_MATERIAL = MaterialFinder.find(BlendMode.DEFAULT, true, true, TriState.FALSE);
 
@@ -52,9 +58,15 @@ abstract class BlockModelWrapperMixin {
 	@Unique
 	private static final Object CONTINUITY$EMISSIVE_MARKER = new Object();
 
+	//? if <26.1 {
 	@Shadow
 	@Final
 	private List<BakedQuad> quads;
+	//?} else {
+	/*@Shadow
+	@Final
+	private net.minecraft.client.resources.model.geometry.QuadCollection quads;
+	*///?}
 
 	@Unique
 	@Nullable
@@ -107,9 +119,13 @@ abstract class BlockModelWrapperMixin {
 
 		List<BakedQuad> emissiveQuads = null;
 		MutableQuad workingQuad = new MutableQuad();
-		int amount = quads.size();
+		//? if <26.1 {
+		List<BakedQuad> sourceQuads = quads;
+		//?} else
+		/*List<BakedQuad> sourceQuads = quads.getAll();*/
+		int amount = sourceQuads.size();
 		for (int i = 0; i < amount; i++) {
-			BakedQuad quad = quads.get(i);
+			BakedQuad quad = sourceQuads.get(i);
 			workingQuad.fromVanilla(quad, null);
 
 			TextureAtlasSprite sprite = workingQuad.sprite();

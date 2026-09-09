@@ -21,7 +21,9 @@ public final class SpriteCalculator {
 	//? if <26.1 {
 	private static final BlockModelShaper MODELS = Minecraft.getInstance().getModelManager().getBlockModelShaper();
 	//?} else {
-	/*private static final net.minecraft.client.renderer.block.BlockStateModelSet MODELS = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+	/*private static net.minecraft.client.renderer.block.BlockStateModelSet models() {
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+	}
 	*///?}
 
 	private static final EnumMap<Direction, SpriteCache> SPRITE_CACHES = new EnumMap<>(Direction.class);
@@ -41,7 +43,7 @@ public final class SpriteCalculator {
 		//?} elif <26.1 {
 		/*net.minecraft.client.renderer.block.model.BlockStateModel model = MODELS.getBlockModel(state);
 		*///?} else
-		/*net.minecraft.client.renderer.block.dispatch.BlockStateModel model = MODELS.get(state);*/
+		/*net.minecraft.client.renderer.block.dispatch.BlockStateModel model = models().get(state);*/
 		try {
 			//? if <1.21.5 {
 			List<BakedQuad> quads = model.getQuads(state, face, randomSupplier.get());

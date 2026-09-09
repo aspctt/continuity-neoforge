@@ -86,13 +86,50 @@ sourceSets.main.get().java.exclude(
     if (usesBlockStateModel) "**/model/bakedmodel/**" else "**/model/blockstatemodel/**"
 )
 
-// NeoForge dropped its experimental light pipeline along with the model data it fed, so the mixin that covered
-// it has no target from 1.21.5 and is left out of both the compile and the mixin config.
-if (usesBlockStateModel) {
-    sourceSets.main.get().java.exclude("**/mixin/QuadLighterMixin.java")
-} else {
-    // Item models only became their own system, rather than baked models, in 1.21.4.
-    sourceSets.main.get().java.exclude("**/mixin/BlockModelWrapperMixin.java")
+// From 26.1 the renderer folds a quad's light emission into the lightmap itself, so nothing has to force the
+// light of an emissive quad any more.
+val emissionIsNative = versionAtLeast("26.1")
+
+// Every mixin this version applies. A mixin left out here is also left out of the compile, so a target class
+// that no longer exists never has to be worked around in the source.
+val clientMixins = buildList {
+    add("FallbackResourceManagerMixin")
+    add("ModelManagerMixin")
+    add("MultiPackResourceManagerMixin")
+    add("ReloadableResourceManagerAccessor")
+    add("ResourceLocationMixin")
+    add("SpriteLoaderMixin")
+    add("SpriteSourceListMixin")
+    add("TextureAtlasSpriteMixin")
+    add("BlockModelShaperMixin")
+    add("RenderRegionAccessor")
+    if (!emissionIsNative) {
+        add("ModelBlockRendererMixin")
+        add("ItemRendererMixin")
+        // Custom block layers need a per block layer query to intercept, and 26.1 bakes the layer onto each
+        // quad instead. Upstream dropped the feature there for the same reason.
+        add("ItemBlockRenderTypesMixin")
+    } else {
+        // Nothing reads the parsed layers on this band, so the file is not parsed either.
+        sourceSets.main.get().java.exclude("**/resource/CustomBlockLayers.java")
+    }
+    if (usesBlockStateModel) {
+        add("ItemModelWrapperMixin")
+    } else {
+        // NeoForge dropped its experimental light pipeline along with the model data it fed.
+        add("QuadLighterMixin")
+    }
+}.sorted()
+
+val allMixins = listOf(
+    "BlockModelShaperMixin", "FallbackResourceManagerMixin", "ItemBlockRenderTypesMixin",
+    "ItemModelWrapperMixin", "ItemRendererMixin", "ModelBlockRendererMixin", "ModelManagerMixin",
+    "MultiPackResourceManagerMixin", "QuadLighterMixin", "ReloadableResourceManagerAccessor",
+    "RenderRegionAccessor", "ResourceLocationMixin", "SpriteLoaderMixin", "SpriteSourceListMixin",
+    "TextureAtlasSpriteMixin",
+)
+for (mixin in allMixins - clientMixins.toSet()) {
+    sourceSets.main.get().java.exclude("**/mixin/$mixin.java")
 }
 // 1.21.10 replaced the single pack format number with a supported range, so the field itself differs and not
 // just its value.
@@ -104,8 +141,8 @@ val packFormatField = if (versionAtLeast("1.21.10")) {
     "\"pack_format\": " + prop("resource_pack_format") + ","
 }
 
-val lightingMixin = if (usesBlockStateModel) "" else ",\n    \"QuadLighterMixin\""
-val itemEmissiveMixin = if (usesBlockStateModel) ",\n    \"BlockModelWrapperMixin\"" else ""
+val javaVersion = if (versionAtLeast("26.1")) 25 else 21
+val clientMixinList = clientMixins.joinToString(",\n    ") { "\"$it\"" }
 
 dependencies {
 }
@@ -125,8 +162,8 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_authors" to prop("mod_authors"),
         "mod_description" to prop("mod_description"),
         "pack_format_field" to packFormatField,
-        "lighting_mixin" to lightingMixin,
-        "item_emissive_mixin" to itemEmissiveMixin,
+        "client_mixins" to clientMixinList,
+        "java_version" to javaVersion.toString(),
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

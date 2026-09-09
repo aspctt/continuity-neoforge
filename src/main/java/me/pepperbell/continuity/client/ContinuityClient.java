@@ -36,6 +36,7 @@ import me.pepperbell.continuity.client.properties.overlay.OrientedConnectingOver
 import me.pepperbell.continuity.client.properties.overlay.RandomOverlayCtmProperties;
 import me.pepperbell.continuity.client.properties.overlay.RepeatOverlayCtmProperties;
 import me.pepperbell.continuity.client.properties.overlay.StandardOverlayCtmProperties;
+//? if <26.1
 import me.pepperbell.continuity.client.resource.CustomBlockLayers;
 import me.pepperbell.continuity.client.resource.ModelReloadHandler;
 import me.pepperbell.continuity.client.util.RenderUtil;
@@ -68,7 +69,9 @@ public class ContinuityClient {
 		BiomeHolderManager.init();
 		ProcessingDataKeys.init();
 		ModelReloadHandler.init(modBus);
+		//? if <26.1 {
 		CustomBlockLayers.ReloadListener.init(modBus);
+		//?}
 
 		modBus.addListener(ContinuityClient::onAddPackFinders);
 		modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> new ContinuityConfigScreen(parent));

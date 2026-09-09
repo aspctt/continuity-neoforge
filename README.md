@@ -57,6 +57,8 @@ Declared targets and where they stand:
 | 1.21.8 | 21.8.54 | block state model | yes | yes | not yet |
 | 1.21.10 | 21.10.63 | block state model | yes | yes | not yet |
 | 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
+| 26.1 | 26.1.2.103 | block state model | yes | yes | not yet |
+| 26.2 | 26.2.0.76 | block state model | yes | yes | not yet |
 
 Every target starts: all mixins apply, both built-in packs register, and the Default Connected Textures pack
 parses into the same 42 quad processors with no errors of Continuity's own.
@@ -69,6 +71,11 @@ builds for those two. That pairing assumes they are compatible, which has not be
 Emissive textures are linked on the block atlas only, on every version, which is what upstream does too. From
 1.21.11 items are stitched onto an atlas of their own, so a texture that lives only there has no emissive
 counterpart. Block models drawn as items, which is what emissive packs mostly target, are unaffected.
+
+Custom block layers are not supported from 26.1. The feature worked by answering the per block layer question
+the game used to ask, and 26.1 stopped asking it: the layer is baked onto each quad instead. Upstream dropped
+the feature on the same version for the same reason. The setting is left out of the config screen there rather
+than left showing and doing nothing.
 
 ### Checking injection points
 
@@ -101,22 +108,21 @@ keeps is unchanged; only the two methods that convert to and from a vanilla quad
 processors and the model layer above them were untouched. Two smaller consequences: the mipped and unmipped
 cutout chunk layers merged into one, and sprites are padded on the atlas instead of having their UVs shrunk.
 
-### What band C needs
+### What band C needed
 
-26.1 and 26.2 have NeoForge builds (26.1.2.103 and 26.2.0.76) and a `versions/` directory each, and the
-toolchain follows Minecraft to Java 25 there. They are not declared in `settings.gradle.kts`, because band C is
-a third model layer rather than a set of renames. Compiling against 26.1 gives 100 errors that fall into three
-groups:
+26.1 turned out to be less of a break than its error count suggested, once the errors were read rather than
+counted. `collectParts` and `getQuads` kept their shape, so the band B model layer carried across with
+directives and no third package was needed.
 
-| Group | What it is |
+| Change | What it meant |
 |---|---|
-| Package moves | `BakedQuad`, `BlockStateModel`, `Material` and `BlockAndTintGetter` all moved, and `BlockModelPart` became `BlockStateModelPart`. Mechanical, and the shape of `collectParts` and `getQuads` is unchanged, so the band B model layer carries across |
-| Chunk layers | a part no longer names a chunk layer at all. It carries `materialFlags()`, a bitmask on the quad, which is what the quad collection and the processed parts are built around today |
-| Hooks with no target left | `ItemBlockRenderTypes`, `ItemRenderer`, `BlockModelShaper` and `LightTexture` are gone, and `ModelBlockRenderer.putQuadData` became `putQuadWithTint`, taking a `BlockQuadOutput` rather than a vertex consumer. Custom block layers, both emissive brightening paths and the model cache hook all need somewhere new to attach |
+| The client model packages moved, and `BlockModelPart` became `BlockStateModelPart` | A replacement pass. This mod's own part was renamed to `ProcessedModelPart` first so the pattern could not catch it |
+| `BakedQuad` gathered the sprite, layer, tint and shading into one `MaterialInfo` | The quad bridge was rebuilt around it. The layout this port keeps internally did not change, so the processors above it were untouched |
+| The chunk layer moved from the part onto the quad | This simplified things. A quad knows its own layer, so the processed parts collapsed from one per layer to a single part covering all of them |
+| The renderer folds a quad's light emission into the lightmap itself | Both mixins that forced the light of an emissive quad became unnecessary and are left out |
+| `ItemBlockRenderTypes`, `BlockModelShaper` and `ItemRenderer` are gone | Two of the three had somewhere new to attach. The third took custom block layers with it |
 
-The first group is a replacement pass. The second reshapes the render package, and the third is four mixins
-that have to be rewritten against a different rendering path, so this is closer in size to the original band B
-port than to adding 1.21.11.
+Minecraft also moved to Java 25 on 26.1, so the toolchain and the mixin compatibility level follow the target.
 
 ### Where the version bands fall
 
@@ -129,7 +135,7 @@ exactly the same version. That splits the range into three bands, not one gradie
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
 | B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | all targets start, none confirmed rendering |
-| C | 26.1 - 26.2 | `BlockStateModel`, reworked again | not started |
+| C | 26.1 - 26.2 | `BlockStateModel`, reworked again | both targets start, neither confirmed rendering |
 
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has
 its own model layer under `client/model/`: `bakedmodel` for band A, `blockstatemodel` for band B. Only the

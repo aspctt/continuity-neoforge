@@ -2,21 +2,9 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.pepperbell.continuity.client.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_${java_version}",
   "client": [
-    "BlockModelShaperMixin",
-    "FallbackResourceManagerMixin",
-    "ItemBlockRenderTypesMixin",
-    "ItemRendererMixin",
-    "ModelBlockRendererMixin",
-    "ModelManagerMixin",
-    "MultiPackResourceManagerMixin",
-    "ReloadableResourceManagerAccessor",
-    "RenderRegionAccessor",
-    "ResourceLocationMixin",
-    "SpriteLoaderMixin",
-    "SpriteSourceListMixin",
-    "TextureAtlasSpriteMixin"${lighting_mixin}${item_emissive_mixin}
+    ${client_mixins}
   ],
   "injectors": {
     "defaultRequire": 1

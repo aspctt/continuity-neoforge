@@ -95,7 +95,7 @@ abstract class ModelManagerMixin {
 			TextureAtlasSprite sprite = preparations.getSprite(material.texture());
 			return sprite != null ? sprite : preparations.missing();
 		});
-		*///?} else {
+		*///?} elif <26.1 {
 		/*handler.setSilentTextureGetter(material -> {
 			ResourceLocation atlas = material.atlasLocation();
 			boolean either = atlas.equals(ModelManager.BLOCK_OR_ITEM);
@@ -113,6 +113,17 @@ abstract class ModelManagerMixin {
 				return preparations.missing();
 			}
 			return null;
+		});
+		*///?} else {
+		/*// 26.1 dropped the atlas from a material entirely, so the sprite is looked for on the block atlas and
+		// then the item one, the same order the game itself uses.
+		handler.setSilentTextureGetter(material -> {
+			TextureAtlasSprite sprite = preparations.getSprite(material.sprite());
+			if (sprite != null) {
+				return sprite;
+			}
+			sprite = itemPreparations.getSprite(material.sprite());
+			return sprite != null ? sprite : preparations.missing();
 		});
 		*///?}
 	}

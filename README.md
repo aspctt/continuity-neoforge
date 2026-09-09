@@ -1,6 +1,6 @@
 # <p align=center> Continuity </p>
 
-![Version](https://img.shields.io/badge/Available_for-1.21.1-blue)
+![Version](https://img.shields.io/badge/Available_for-1.21.1_--_26.2-blue)
 ![Mod Loader](https://img.shields.io/badge/Mod_Loader-NeoForge-orange)
 ![Requires](https://img.shields.io/badge/Requires-Nothing-brightgreen)
 ![License](https://img.shields.io/badge/License-LGPL--3.0--only-blue)
@@ -19,9 +19,11 @@ Formally the mod implements the Continuity connected textures, emissive textures
 
 ## Port status
 
-**Builds and runs. Not yet visually verified.** The mod loads on NeoForge 21.1.249 for 1.21.1, every mixin applies, both built-in resource packs register, and the Default Connected Textures pack parses into its full set of quad processors with a world rendering and no errors. That holds with NeoForge's experimental light pipeline both off and on. What has not been confirmed is the last step: that glass in the world actually reads as connected. Treat it as untested until someone has looked at it.
+**Builds and runs. Connected textures confirmed on 1.21.1.** Every declared target loads: all mixins apply, both built-in resource packs register, and the Default Connected Textures pack parses into the same 42 quad processors with no errors of Continuity's own. On 1.21.1 that has been carried the last step, and glass in the world does read as connected, with NeoForge's experimental light pipeline both off and on. On the other targets the final visual check has not been done.
 
-Also untested: Sodium and Embeddium. The design should suit them, since connection state is resolved through the NeoForge model pipeline rather than a hook into vanilla chunk rendering, but that is an expectation and not a result.
+Sodium fits by design rather than by luck, and the parts that can be checked without looking at a screen have been. It resolves block models through the same NeoForge entry points this port implements: `getModelData`, `getRenderTypes` and `getQuads` below 1.21.5, `collectParts` above it. So connected textures reach it the way they reach vanilla. Emissive quads carry a `lightEmission` of 15, which Sodium reads back on every version from 1.21.2. On 1.21.1 that field does not exist, only the marker type does, and Sodium replaces the renderer that reads it, so emissive textures stay unlit under Sodium on that one version. Continuity's options appear as their own page in Sodium's video settings, which has been seen working. Everything but the config page is read off Sodium's source rather than observed, so the rendering itself is still unverified.
+
+Embeddium is untested and unexamined.
 
 The interesting part of the work is the renderer. Upstream is built on the Fabric Rendering API, whose mesh and quad-emitter model NeoForge has no equivalent of. Rather than reimplement that API wholesale, the processing pipeline here runs on a small quad abstraction backed directly by vanilla `BakedQuad` vertex arrays, and results are handed to the game the NeoForge way:
 
@@ -29,6 +31,8 @@ The interesting part of the work is the renderer. Upstream is built on the Fabri
 * Per-quad blend modes become render types, surfaced through `getRenderTypes` and returned per pass from `getQuads`.
 * Diffuse shading and ambient occlusion map onto the flags vanilla quads already carry.
 * Emissive quads are tagged with a marker type and forced to full brightness at draw time, since NeoForge has no per-quad light override. Both lighting paths are covered: vanilla's, and the one NeoForge substitutes when its experimental light pipeline is enabled.
+
+That is the 1.21.1 baseline. From 1.21.5 the quad carries a `lightEmission` field that stands in for the marker type, and from 26.1 the renderer folds emission into the lightmap on its own, so neither mixin is needed there. The sections below track the rest.
 
 Two upstream mixins are gone rather than ported. Continuity on Fabric explicitly disables itself while falling blocks and piston-moved blocks render; on NeoForge both of those paths pass empty model data, so the same thing happens on its own.
 
@@ -47,35 +51,29 @@ against several Minecraft versions. Each target is a subproject under `versions/
 
 Declared targets and where they stand:
 
-| Target | NeoForge | Model API | Builds | Loads and reads packs | Rendering confirmed |
-|---|---|---|---|---|---|
-| 1.21.1 | 21.1.249 | baked model | yes | yes | connected textures confirmed |
-| 1.21.3 | 21.3.97 | baked model | yes | yes | not yet |
-| 1.21.4 | 21.4.157 | baked model | yes | yes | not yet |
-| 1.21.5 | 21.5.98 | block state model | yes | yes | not yet |
-| 1.21.6 | 21.6.20-beta | block state model | yes | yes | not yet |
-| 1.21.7 | 21.7.25-beta | block state model | yes | yes | not yet |
-| 1.21.8 | 21.8.54 | block state model | yes | yes | not yet |
-| 1.21.9 | 21.9.16-beta | block state model | yes | yes | not yet |
-| 1.21.10 | 21.10.63 | block state model | yes | yes | not yet |
-| 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
-| 26.1 | 26.1.2.103 | block state model | yes | yes | not yet |
-| 26.2 | 26.2.0.76 | block state model | yes | yes | not yet |
+| Target | Covers | NeoForge | Model API | Builds | Loads and reads packs | Rendering confirmed |
+|---|---|---|---|---|---|---|
+| 1.21.1 | 1.21.1 | 21.1.249 | baked model | yes | yes | connected textures confirmed |
+| 1.21.11 | 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
+| 26.1 | 26.1, 26.1.1, 26.1.2 | 26.1.2.103 | block state model | yes | yes | not yet |
+| 26.2 | 26.2 | 26.2.0.76 | block state model | yes | yes | not yet |
 
 Every target starts: all mixins apply, both built-in packs register, and the Default Connected Textures pack
 parses into the same 42 quad processors with no errors of Continuity's own.
 
 Connected textures have only been confirmed rendering correctly on 1.21.1. The rest are unverified in game.
 
-1.21.6, 1.21.7 and 1.21.9 have only beta NeoForge builds, which is why they were first covered by widening
-the neighbouring targets' version ranges rather than built. That turned out to be wrong for 1.21.9: it already
-carries the changes that were assumed to arrive in 1.21.10, so a 1.21.8 jar would not have worked there. Each
-now has a target of its own.
+One target per model API band is kept, which is what holds all three code paths compiled and checked. The
+directives in the source still name the versions in between, because that is where the changes they guard
+actually landed, and a target could be added back without rewriting them.
 
-The one range still covering two versions is 1.21.3, which also serves 1.21.2. Nothing in this mod tells those
-two apart: their generated sources come out identical, the injection points resolve against both, and they
-share a pack format, so the 1.21.3 jar is the same code a 1.21.2 build would produce. Every other range names
-a single version.
+1.21.2 through 1.21.10 were built and released once, at 3.0.2, and are not carried forward: no fixes, no
+updates. Their targets were removed after that release rather than left building. Commit `bc6f405` is the last
+one that declares all twelve, so an archived version can still be rebuilt from there if it ever has to be.
+
+The one target covering more than a single version is 26.1, which serves 26.1 and 26.1.1 as well as 26.1.2.
+Nothing in this mod tells those apart: all three compile to byte identical classes, every injection point
+resolves against each, and they share a resource pack format.
 
 Emissive textures are linked on the block atlas only, on every version, which is what upstream does too. From
 1.21.11 items are stitched onto an atlas of their own, so a texture that lives only there has no emissive
@@ -104,7 +102,7 @@ python tools/check-mixin-targets.py 1.21.11
 
 None of these was another architectural break on the scale of 1.21.5, but 1.21.11 came closer than the others.
 
-| Target | What moved |
+| Version | What moved |
 |---|---|
 | 1.21.6 | chunk layers left `RenderType` for a `ChunkSectionLayer` enum of their own, and `RenderChunkRegion` became `RenderSectionRegion` |
 | 1.21.8 | nothing beyond 1.21.6 |

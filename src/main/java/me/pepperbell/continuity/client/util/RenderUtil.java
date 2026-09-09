@@ -59,10 +59,16 @@ public final class RenderUtil {
 	}
 
 	/**
-	 * {@return the biome at {@code pos}, or {@code null} when the view cannot supply one}
+	 * {@return the biome at {@code pos}, or {@code null} when no level can be reached}
 	 *
 	 * <p>Chunk rendering hands models a {@link RenderChunkRegion}, which holds a level but does not expose biomes, so
 	 * the lookup goes through the region rather than the view interface.
+	 *
+	 * <p>Renderers that replace vanilla's chunk rendering, Sodium among them, pass a view of their own that is neither
+	 * a level nor a region, and NeoForge puts no biome accessor on {@link BlockAndTintGetter} to ask through instead.
+	 * Those fall back to the client level, which is the same object the region would have handed back. Vanilla already
+	 * reads biomes off it from the chunk build threads when it resolves block tints, so the fallback is no less safe
+	 * than the branch above it.
 	 */
 	@Nullable
 	public static Biome getBiome(BlockAndTintGetter blockView, BlockPos pos) {
@@ -72,7 +78,10 @@ public final class RenderUtil {
 		} else if (blockView instanceof RenderChunkRegion region) {
 			level = ((RenderRegionAccessor) region).getLevel();
 		} else {
-			return null;
+			level = Minecraft.getInstance().level;
+			if (level == null) {
+				return null;
+			}
 		}
 		return level.getBiome(pos).value();
 	}

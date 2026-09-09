@@ -70,8 +70,12 @@ Connected textures have only been confirmed rendering correctly on 1.21.1. The r
 1.21.6, 1.21.7 and 1.21.9 have only beta NeoForge builds, which is why they were first covered by widening
 the neighbouring targets' version ranges rather than built. That turned out to be wrong for 1.21.9: it already
 carries the changes that were assumed to arrive in 1.21.10, so a 1.21.8 jar would not have worked there. Each
-version now has a target of its own and every range names a single version, so nothing is claimed that has not
-been built.
+now has a target of its own.
+
+The one range still covering two versions is 1.21.3, which also serves 1.21.2. Nothing in this mod tells those
+two apart: their generated sources come out identical, the injection points resolve against both, and they
+share a pack format, so the 1.21.3 jar is the same code a 1.21.2 build would produce. Every other range names
+a single version.
 
 Emissive textures are linked on the block atlas only, on every version, which is what upstream does too. From
 1.21.11 items are stitched onto an atlas of their own, so a texture that lives only there has no emissive

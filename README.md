@@ -54,7 +54,9 @@ Declared targets and where they stand:
 | 1.21.4 | 21.4.157 | baked model | yes | yes | not yet |
 | 1.21.5 | 21.5.98 | block state model | yes | yes | not yet |
 | 1.21.6 | 21.6.20-beta | block state model | yes | yes | not yet |
+| 1.21.7 | 21.7.25-beta | block state model | yes | yes | not yet |
 | 1.21.8 | 21.8.54 | block state model | yes | yes | not yet |
+| 1.21.9 | 21.9.16-beta | block state model | yes | yes | not yet |
 | 1.21.10 | 21.10.63 | block state model | yes | yes | not yet |
 | 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
 | 26.1 | 26.1.2.103 | block state model | yes | yes | not yet |
@@ -65,8 +67,11 @@ parses into the same 42 quad processors with no errors of Continuity's own.
 
 Connected textures have only been confirmed rendering correctly on 1.21.1. The rest are unverified in game.
 
-The 1.21.6 target covers 1.21.7 and the 1.21.8 target covers 1.21.9, since NeoForge only ever published beta
-builds for those two. That pairing assumes they are compatible, which has not been verified.
+1.21.6, 1.21.7 and 1.21.9 have only beta NeoForge builds, which is why they were first covered by widening
+the neighbouring targets' version ranges rather than built. That turned out to be wrong for 1.21.9: it already
+carries the changes that were assumed to arrive in 1.21.10, so a 1.21.8 jar would not have worked there. Each
+version now has a target of its own and every range names a single version, so nothing is claimed that has not
+been built.
 
 Emissive textures are linked on the block atlas only, on every version, which is what upstream does too. From
 1.21.11 items are stitched onto an atlas of their own, so a texture that lives only there has no emissive
@@ -99,7 +104,7 @@ None of these was another architectural break on the scale of 1.21.5, but 1.21.1
 |---|---|
 | 1.21.6 | chunk layers left `RenderType` for a `ChunkSectionLayer` enum of their own, and `RenderChunkRegion` became `RenderSectionRegion` |
 | 1.21.8 | nothing beyond 1.21.6 |
-| 1.21.10 | `AtlasSet` gave way to `SpriteLoader.Preparations`, reload listeners take a shared state rather than a resource manager, and pack metadata replaced `pack_format` with `min_format` and `max_format` |
+| 1.21.9 | `AtlasSet` gave way to `SpriteLoader.Preparations`, reload listeners take a shared state rather than a resource manager, and pack metadata replaced `pack_format` with `min_format` and `max_format`. 1.21.10 changed nothing further |
 | 1.21.11 | `ResourceLocation` became `Identifier`, `BakedQuad` stopped being backed by a vertex array, and blocks and items are stitched onto separate atlases |
 
 The 1.21.11 quad change is the substantive one. Positions are now `Vector3fc`, texture coordinates are packed

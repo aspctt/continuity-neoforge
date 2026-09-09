@@ -61,10 +61,10 @@ abstract class SpriteSourceListMixin {
 	/**
 	 * Pairs every sprite with its emissive counterpart, adding the counterpart to the atlas when the pack ships one.
 	 *
-	 * <p>From 1.21.10 the single argument overload only delegates, so the injection has to target the two argument
+	 * <p>From 1.21.9 the single argument overload only delegates, so the injection has to target the two argument
 	 * one that actually collects the suppliers.
 	 */
-	//? if <1.21.10 {
+	//? if <1.21.9 {
 	@Inject(method = "list(Lnet/minecraft/server/packs/resources/ResourceManager;)Ljava/util/List;", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableList;builder()Lcom/google/common/collect/ImmutableList$Builder;", remap = false))
 	private void continuity$afterRunSources(ResourceManager resourceManager, CallbackInfoReturnable<List<Function<SpriteResourceLoader, SpriteContents>>> cir, @Local Map<ResourceLocation, SpriteSource.SpriteSupplier> suppliers) {
 	//?} else {

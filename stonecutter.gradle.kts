@@ -43,7 +43,7 @@ stonecutter parameters {
             replace("RenderChunkRegion", "RenderSectionRegion")
         }
 
-        string(current.parsed >= "1.21.10") {
+        string(current.parsed >= "1.21.9") {
             // The metadata section argument of loadAndStitch narrowed from a collection to a set, which changes
             // the descriptor the sprite loader injections match on.
             replace("ILjava/util/concurrent/Executor;Ljava/util/Collection;)", "ILjava/util/concurrent/Executor;Ljava/util/Set;)")

@@ -130,7 +130,7 @@ public class ModelReloadHandler {
 			return;
 		}
 
-		//? if <1.21.10 {
+		//? if <1.21.9 {
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(event.getTextureGetter());
 		//?} elif <26.1 {
 		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();

@@ -116,11 +116,11 @@ public final class CustomBlockLayers {
 		@Override
 		//? if <1.21.2 {
 		public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
-		//?} elif <1.21.10 {
+		//?} elif <1.21.9 {
 		/*public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
 		*///?} else
 		/*public CompletableFuture<Void> reload(SharedState sharedState, Executor backgroundExecutor, PreparationBarrier barrier, Executor gameExecutor) {*/
-			//? if >=1.21.10
+			//? if >=1.21.9
 			/*ResourceManager manager = sharedState.resourceManager();*/
 			return CompletableFuture.supplyAsync(() -> manager, backgroundExecutor)
 					.thenCompose(barrier::wait)

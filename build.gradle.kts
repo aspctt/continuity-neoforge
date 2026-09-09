@@ -131,9 +131,9 @@ val allMixins = listOf(
 for (mixin in allMixins - clientMixins.toSet()) {
     sourceSets.main.get().java.exclude("**/mixin/$mixin.java")
 }
-// 1.21.10 replaced the single pack format number with a supported range, so the field itself differs and not
+// 1.21.9 replaced the single pack format number with a supported range, so the field itself differs and not
 // just its value.
-val packFormatField = if (versionAtLeast("1.21.10")) {
+val packFormatField = if (versionAtLeast("1.21.9")) {
     val major = prop("resource_pack_format")
     val minor = prop("resource_pack_format_minor")
     "\"min_format\": $major," + System.lineSeparator() + "    \"max_format\": [$major, $minor],"

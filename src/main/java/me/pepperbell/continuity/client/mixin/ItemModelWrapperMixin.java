@@ -34,7 +34,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.TriState;
-//? if <1.21.10 {
+//? if <1.21.9 {
 import net.minecraft.world.entity.LivingEntity;
 //?} else
 /*import net.minecraft.world.entity.ItemOwner;*/
@@ -76,7 +76,7 @@ abstract class ItemModelWrapperMixin {
 	@Unique
 	private boolean continuity$emissiveAnimated;
 
-	//? if <1.21.10 {
+	//? if <1.21.9 {
 	@Inject(method = "update(Lnet/minecraft/client/renderer/item/ItemStackRenderState;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/item/ItemModelResolver;Lnet/minecraft/world/item/ItemDisplayContext;Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/world/entity/LivingEntity;I)V", at = @At("TAIL"))
 	private void continuity$onTailUpdate(ItemStackRenderState renderState, ItemStack stack, ItemModelResolver resolver, ItemDisplayContext displayContext, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed, CallbackInfo ci, @Local ItemStackRenderState.LayerRenderState layer) {
 	//?} else {
@@ -96,7 +96,7 @@ abstract class ItemModelWrapperMixin {
 		}
 
 		layer.prepareQuadList().addAll(emissiveQuads);
-		//? if >=1.21.10 {
+		//? if >=1.21.6 {
 		/*renderState.appendModelIdentityElement(CONTINUITY$EMISSIVE_MARKER);
 		if (continuity$emissiveAnimated) {
 			renderState.setAnimated();
@@ -143,7 +143,9 @@ abstract class ItemModelWrapperMixin {
 			}
 			emissiveQuads.add(workingQuad.toBakedQuad());
 
-			//? if >=1.21.10 {
+			// SpriteContents only started answering this in 1.21.9. Before that an animated emissive texture
+			// still draws, it just does not mark the render state as needing a rebuild each frame.
+			//? if >=1.21.9 {
 			/*if (emissiveSprite.contents().isAnimated()) {
 				continuity$emissiveAnimated = true;
 			}

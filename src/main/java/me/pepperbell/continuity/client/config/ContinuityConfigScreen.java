@@ -107,11 +107,11 @@ public class ContinuityConfigScreen extends Screen {
 		}
 	}
 
-	private static String getTranslationKey(String optionKey) {
+	static String getTranslationKey(String optionKey) {
 		return "options.continuity." + optionKey;
 	}
 
-	private static String getTooltipKey(String translationKey) {
+	static String getTooltipKey(String translationKey) {
 		return translationKey + ".tooltip";
 	}
 

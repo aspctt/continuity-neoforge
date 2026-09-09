@@ -28,7 +28,20 @@ base {
 
 repositories {
     mavenCentral()
+    // Sodium's config API, published on its own so a mod can compile against it without pulling in Sodium.
+    maven("https://maven.caffeinemc.net/releases") {
+        content { includeGroup("net.caffeinemc") }
+    }
+    // The Sodium mod jar itself, added to the development run only so the config page can be looked at.
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
 }
+
+// Sodium's config API arrived in 0.8, which only some of its builds carry: the 0.6 and 0.7 lines that serve
+// 1.21.3 through 1.21.10 have no such API at all. A target declares the version it can compile against, and
+// one that declares none neither compiles the entry point nor points the mod metadata at it.
+val sodiumApiVersion: String? = findProperty("sodium_api_version") as String?
 
 // Mojang ships Java 21 to end users through 1.21.11, and Java 25 from 26.1.
 java.toolchain.languageVersion = JavaLanguageVersion.of(if (versionAtLeast("26.1")) 25 else 21)
@@ -141,10 +154,35 @@ val packFormatField = if (versionAtLeast("1.21.9")) {
     "\"pack_format\": " + prop("resource_pack_format") + ","
 }
 
+if (sodiumApiVersion == null) {
+    sourceSets.main.get().java.exclude("**/config/SodiumConfigImpl.java")
+}
+
+// Sodium reads this out of the mod metadata and instantiates the class itself, so nothing in Continuity ever
+// names it and the class stays unloaded when Sodium is not installed.
+val sodiumEntryPoint = if (sodiumApiVersion == null) {
+    ""
+} else {
+    "[modproperties.${prop("mod_id")}]" + System.lineSeparator() +
+            "\"sodium:config_api_user\" = \"me.pepperbell.continuity.client.config.SodiumConfigImpl\""
+}
+
 val javaVersion = if (versionAtLeast("26.1")) 25 else 21
 val clientMixinList = clientMixins.joinToString(",\n    ") { "\"$it\"" }
 
+// Sodium is wanted on the classpath a run resolves and nowhere else. Extending runtimeClasspath alone puts
+// it there without touching runtimeElements, which is what the published metadata is built from, so nobody
+// depending on Continuity is asked to bring Sodium along.
+val sodiumRuntime = configurations.create("sodiumRuntime")
+configurations.runtimeClasspath.get().extendsFrom(sodiumRuntime)
+
 dependencies {
+    if (sodiumApiVersion != null) {
+        // Continuity never calls into Sodium; it implements an interface Sodium looks for, so this is a
+        // compile time contract and nothing more.
+        compileOnly("net.caffeinemc:sodium-neoforge-api:$sodiumApiVersion")
+        sodiumRuntime("maven.modrinth:sodium:${prop("sodium_version")}")
+    }
 }
 
 // Expand the declared properties into the mod metadata template.
@@ -164,6 +202,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "pack_format_field" to packFormatField,
         "client_mixins" to clientMixinList,
         "java_version" to javaVersion.toString(),
+        "sodium_entry_point" to sodiumEntryPoint,
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

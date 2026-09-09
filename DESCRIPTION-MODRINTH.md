@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/Available_for-1.21.1-blue)
+![Version](https://img.shields.io/badge/Available_for-1.21.1_--_26.2-blue)
 ![Requires](https://img.shields.io/badge/Requires-Nothing-brightgreen)
 ![License](https://img.shields.io/badge/License-LGPL--3.0--only-red)
 
@@ -39,7 +39,7 @@ Packs written for Continuity on Fabric are meant to look identical here. Connect
 
 ### Requirements
 
-Minecraft 1.21.1 and NeoForge 21.1.0 or newer.
+NeoForge, and nothing else. A separate file is built for every Minecraft version from 1.21.1 through 1.21.11, and for 26.1 and 26.2. Download the one matching your Minecraft version; each needs the NeoForge line that goes with it, so the 1.21.8 build wants NeoForge 21.8.0 or newer and the 26.2 build wants 26.2.0 or newer.
 
 ### License
 

@@ -103,6 +103,10 @@ sourceSets.main.get().java.exclude(
 // light of an emissive quad any more.
 val emissionIsNative = versionAtLeast("26.1")
 
+// Atlas stitching became its own reload listener, running ahead of the model one, so the sprite loader context
+// has to be installed a listener earlier than it used to be.
+val atlasIsOwnListener = versionAtLeast("1.21.11")
+
 // Every mixin this version applies. A mixin left out here is also left out of the compile, so a target class
 // that no longer exists never has to be worked around in the source.
 val clientMixins = buildList {
@@ -116,6 +120,9 @@ val clientMixins = buildList {
     add("TextureAtlasSpriteMixin")
     add("BlockModelShaperMixin")
     add("RenderRegionAccessor")
+    if (atlasIsOwnListener) {
+        add("AtlasManagerMixin")
+    }
     if (!emissionIsNative) {
         add("ModelBlockRendererMixin")
         add("ItemRendererMixin")
@@ -135,6 +142,7 @@ val clientMixins = buildList {
 }.sorted()
 
 val allMixins = listOf(
+    "AtlasManagerMixin",
     "BlockModelShaperMixin", "FallbackResourceManagerMixin", "ItemBlockRenderTypesMixin",
     "ItemModelWrapperMixin", "ItemRendererMixin", "ModelBlockRendererMixin", "ModelManagerMixin",
     "MultiPackResourceManagerMixin", "QuadLighterMixin", "ReloadableResourceManagerAccessor",

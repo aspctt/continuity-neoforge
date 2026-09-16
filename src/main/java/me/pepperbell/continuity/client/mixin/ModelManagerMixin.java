@@ -27,11 +27,13 @@ import net.minecraft.util.profiling.ProfilerFiller;
 /**
  * Starts a Continuity reload alongside the model reload.
  *
- * <p>The atlas context has to be installed here rather than in an event, because the sprite sources are scheduled
- * synchronously from inside this method and the loader mixins pick the context up off the calling thread.
+ * <p>Up to 1.21.10 this is also where the atlas context is installed, because the sprite sources are scheduled
+ * synchronously from inside this method and the loader mixins pick the context up off the calling thread. From
+ * 1.21.11 the atlases are stitched by their own reload listener, which runs first, so {@code AtlasManagerMixin}
+ * installs the context and this only picks the reload up again.
  *
- * <p>Both injections match by method name rather than by descriptor. Every one of these signatures changed at least
- * once across 1.21.x, and loadModels also turned static, so only the argument that matters is captured.
+ * <p>The reload injection matches by method name rather than by descriptor. Every one of these signatures changed at
+ * least once across 1.21.x, so only the arguments that matter are captured.
  */
 @Mixin(ModelManager.class)
 abstract class ModelManagerMixin {
@@ -44,9 +46,19 @@ abstract class ModelManagerMixin {
 	/*private void continuity$onHeadReload(PreparableReloadListener.SharedState sharedState, Executor backgroundExecutor, PreparableReloadListener.PreparationBarrier preparationBarrier, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {*/
 		//? if >=1.21.9
 		/*ResourceManager resourceManager = sharedState.resourceManager();*/
+		//? if <1.21.11 {
 		ModelReloadHandler.beginReload(resourceManager, backgroundExecutor).setContext();
+		//?} else {
+		/*// AtlasManagerMixin already began the reload, one listener earlier, because the atlases are handed to
+		// the sprite loader before this point. Beginning a second one here would throw the first away along with
+		// the extra sprites it put on the atlas.
+		if (ModelReloadHandler.getCurrent() == null) {
+			ModelReloadHandler.beginReload(resourceManager, backgroundExecutor);
+		}
+		*///?}
 	}
 
+	//? if <1.21.11 {
 	@Inject(method = "reload", at = @At("RETURN"))
 	private void continuity$onReturnReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
 		ModelReloadHandler handler = ModelReloadHandler.getCurrent();
@@ -54,6 +66,7 @@ abstract class ModelManagerMixin {
 			handler.clearContext();
 		}
 	}
+	//?}
 
 	/**
 	 * Hands a silent sprite lookup over before the baking event fires.
@@ -64,7 +77,14 @@ abstract class ModelManagerMixin {
 	 * atlas set, so the block atlas preparations are captured instead, and from 1.21.11 blocks and items are
 	 * stitched separately and both are passed, so the two are told apart by position.
 	 */
+	//? if <26.1 {
 	@Inject(method = "loadModels", at = @At("HEAD"))
+	//?} else {
+	/*// From 26.1 NeoForge keeps a deprecated overload beside the real one, and it only delegates. Matching by
+	// name alone binds to that one, which the reload never calls, so the whole descriptor is spelled out to
+	// pick the overload that does the work.
+	@Inject(method = "loadModels(Lnet/minecraft/client/renderer/texture/SpriteLoader$Preparations;Lnet/minecraft/client/renderer/texture/SpriteLoader$Preparations;Lnet/minecraft/client/resources/model/ModelBakery;Lnet/minecraft/client/renderer/block/LoadedBlockModels;Lit/unimi/dsi/fastutil/objects/Object2IntMap;Lnet/minecraft/client/model/geom/EntityModelSet;Ljava/util/concurrent/Executor;Lnet/neoforged/neoforge/client/entity/animation/json/AnimationLoader$PendingAnimations;)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"))
+	*///?}
 	//? if <1.21.4 {
 	private void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) Map<ResourceLocation, AtlasSet.StitchResult> stitchResults) {
 	//?} elif <1.21.9 {

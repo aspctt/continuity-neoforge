@@ -31,10 +31,11 @@ import net.neoforged.neoforge.client.event.ModelEvent;
  * Drives everything Continuity has to do during a resource reload: reading the CTM properties, feeding the extra
  * sprites into the atlas, building the quad processors once the atlas is stitched, and wrapping the baked models.
  *
- * <p>The work is spread across three points of the model reload. {@link ModelManager#reload} kicks off the property
- * load and installs the atlas context; {@link ModelEvent.ModifyBakingResult} builds the processors and wraps the
- * models, since it fires after stitching but before the block state cache is filled; and
- * {@link ModelEvent.BakingCompleted} publishes the processors to the renderer.
+ * <p>The work is spread across three points of the reload. The property load starts and the atlas context is
+ * installed at the head of whichever reload listener stitches the atlases, which is the model one up to 1.21.10 and
+ * the atlas one from 1.21.11; {@link ModelEvent.ModifyBakingResult} builds the processors and wraps the models,
+ * since it fires after stitching but before the block state cache is filled; and {@link ModelEvent.BakingCompleted}
+ * publishes the processors to the renderer.
  */
 public class ModelReloadHandler {
 	@Nullable
@@ -110,7 +111,8 @@ public class ModelReloadHandler {
 	}
 
 	/**
-	 * Called from {@code ModelManagerMixin} at the head of a model reload.
+	 * Called at the head of the first reload listener that Continuity has to be ahead of, which is
+	 * {@code AtlasManagerMixin} from 1.21.11 and {@code ModelManagerMixin} before that.
 	 */
 	@ApiStatus.Internal
 	public static ModelReloadHandler beginReload(ResourceManager resourceManager, Executor prepareExecutor) {

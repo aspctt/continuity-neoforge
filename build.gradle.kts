@@ -162,6 +162,14 @@ val packFormatField = if (versionAtLeast("1.21.9")) {
     "\"pack_format\": " + prop("resource_pack_format") + ","
 }
 
+// 26.2 split the old logo into a wide banner and a square icon, and warns on load for anything still using the
+// single key. The mod only ships a square icon, so only the icon half is declared.
+val iconFields = if (versionAtLeast("26.2")) {
+    "iconFile = \"assets/continuity/icon.png\"" + System.lineSeparator() + "iconBlur = false"
+} else {
+    "logoFile = \"assets/continuity/icon.png\"" + System.lineSeparator() + "logoBlur = false"
+}
+
 if (sodiumApiVersion == null) {
     sourceSets.main.get().java.exclude("**/config/SodiumConfigImpl.java")
 }
@@ -208,6 +216,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "mod_authors" to prop("mod_authors"),
         "mod_description" to prop("mod_description"),
         "pack_format_field" to packFormatField,
+        "icon_fields" to iconFields,
         "client_mixins" to clientMixinList,
         "java_version" to javaVersion.toString(),
         "sodium_entry_point" to sodiumEntryPoint,

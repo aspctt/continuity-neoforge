@@ -9,6 +9,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 
 public final class QuadUtil {
+	// Both helpers below record the sprite they point the UVs at. Upstream never had to, because the Fabric renderer
+	// works the sprite out from the UVs. Here the quad carries it, and the next pass picks its processors by it, so a
+	// quad still naming the old sprite runs the same processor again on UVs that have already moved.
 	public static void interpolate(MutableQuadView quad, TextureAtlasSprite oldSprite, TextureAtlasSprite newSprite) {
 		float oldMinU = oldSprite.getU0();
 		float oldMinV = oldSprite.getV0();
@@ -22,6 +25,7 @@ public final class QuadUtil {
 					newMinV + (quad.v(i) - oldMinV) * vFactor
 			);
 		}
+		quad.sprite(newSprite);
 	}
 
 	public static void assignLerpedUVs(MutableQuadView quad, TextureAtlasSprite sprite) {
@@ -39,6 +43,9 @@ public final class QuadUtil {
 		quad.uv(1, lerpedMinU, lerpedMaxV);
 		quad.uv(2, lerpedMaxU, lerpedMaxV);
 		quad.uv(3, lerpedMaxU, lerpedMinV);
+		// An overlay quad is built from nothing, so without this it would be baked with no sprite at all, which 26.1
+		// cannot render and crashes on.
+		quad.sprite(sprite);
 	}
 
 	public static void emitOverlayQuad(QuadEmitter emitter, Direction face, TextureAtlasSprite sprite, int color, RenderMaterial material) {

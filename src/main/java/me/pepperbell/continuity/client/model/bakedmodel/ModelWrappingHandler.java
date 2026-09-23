@@ -1,23 +1,34 @@
 package me.pepperbell.continuity.client.model.bakedmodel;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.ImmutableMap;
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.pepperbell.continuity.client.ContinuityClient;
+import me.pepperbell.continuity.client.model.ForeignModelFilter;
+import me.pepperbell.continuity.client.model.QuadProcessors;
 import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 //? if <1.21.2 {
 import net.minecraft.client.resources.model.ModelBakery;
 //?} else
 /*import net.minecraft.client.resources.model.MissingBlockModel;*/
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * Wraps baked models so that connected and emissive textures apply to them.
@@ -27,22 +38,26 @@ import net.minecraft.world.level.block.state.BlockState;
  * It runs at the lowest priority so that other mods have already applied their own wrappers and ours sits outermost.
  */
 public class ModelWrappingHandler {
+	private static final Direction[] DIRECTIONS = Direction.values();
+
 	private final boolean wrapCtm;
 	private final boolean wrapEmissive;
+	private final ForeignModelFilter foreignModelFilter;
 	private final ImmutableMap<ModelResourceLocation, BlockState> blockStateModelIds;
 
-	private ModelWrappingHandler(boolean wrapCtm, boolean wrapEmissive) {
-		this.wrapCtm = wrapCtm;
+	private ModelWrappingHandler(List<QuadProcessors.ProcessorHolder> processorHolders, boolean wrapEmissive) {
+		wrapCtm = !processorHolders.isEmpty();
 		this.wrapEmissive = wrapEmissive;
+		foreignModelFilter = new ForeignModelFilter(processorHolders);
 		blockStateModelIds = createBlockStateModelIdMap();
 	}
 
 	@Nullable
-	public static ModelWrappingHandler create(boolean wrapCtm, boolean wrapEmissive) {
-		if (!wrapCtm && !wrapEmissive) {
+	public static ModelWrappingHandler create(List<QuadProcessors.ProcessorHolder> processorHolders, boolean wrapEmissive) {
+		if (processorHolders.isEmpty() && !wrapEmissive) {
 			return null;
 		}
-		return new ModelWrappingHandler(wrapCtm, wrapEmissive);
+		return new ModelWrappingHandler(processorHolders, wrapEmissive);
 	}
 
 	private static ImmutableMap<ModelResourceLocation, BlockState> createBlockStateModelIdMap() {
@@ -68,16 +83,50 @@ public class ModelWrappingHandler {
 			return model;
 		}
 
-		if (wrapCtm && topLevelId != null) {
-			BlockState state = blockStateModelIds.get(topLevelId);
-			if (state != null) {
-				model = new CtmBakedModel(model, state);
+		BlockState state = topLevelId == null ? null : blockStateModelIds.get(topLevelId);
+		boolean wrapCtm = this.wrapCtm && state != null;
+		boolean wrapEmissive = this.wrapEmissive;
+		if (ForeignModelFilter.isForeign(model) && (state == null || !ForeignModelFilter.takesAppearance(state.getBlock()))) {
+			Set<TextureAtlasSprite> sprites = collectSprites(model, state);
+			if (sprites == null) {
+				return model;
 			}
+			wrapCtm = wrapCtm && foreignModelFilter.hasConnectedTextures(state, sprites);
+			// A connected texture can have an emissive counterpart of its own, so the emissive wrapper has to stay
+			// whenever the connected one does.
+			wrapEmissive = wrapEmissive && (wrapCtm || ForeignModelFilter.hasEmissive(sprites));
+		}
+
+		if (wrapCtm) {
+			model = new CtmBakedModel(model, state);
 		}
 		if (wrapEmissive) {
 			model = new EmissiveBakedModel(model);
 		}
 		return model;
+	}
+
+	/**
+	 * Collects the sprites a model draws when there is no level to ask, or {@code null} if the model cannot be asked
+	 * at all, in which case it is left alone rather than risk wrapping one that is looked up and cast.
+	 */
+	@Nullable
+	private static Set<TextureAtlasSprite> collectSprites(BakedModel model, @Nullable BlockState state) {
+		RandomSource random = RandomSource.create();
+		Set<TextureAtlasSprite> sprites = new ReferenceOpenHashSet<>();
+		try {
+			for (int i = 0; i <= DIRECTIONS.length; i++) {
+				Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
+				random.setSeed(42L);
+				for (BakedQuad quad : model.getQuads(state, cullFace, random, ModelData.EMPTY, null)) {
+					sprites.add(quad.getSprite());
+				}
+			}
+		} catch (RuntimeException e) {
+			ContinuityClient.LOGGER.debug("Could not read the textures of model {} for {}, leaving it unwrapped", model, state, e);
+			return null;
+		}
+		return sprites;
 	}
 
 	@ApiStatus.Internal

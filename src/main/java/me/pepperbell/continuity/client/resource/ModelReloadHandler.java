@@ -93,7 +93,7 @@ public class ModelReloadHandler {
 		List<QuadProcessors.ProcessorHolder> processorHolders = result.createProcessorHolders(textureGetter);
 		this.processorHolders = processorHolders;
 
-		return ModelWrappingHandler.create(!processorHolders.isEmpty(), wrapEmissiveModels.get());
+		return ModelWrappingHandler.create(processorHolders, wrapEmissiveModels.get());
 	}
 
 	public void apply() {

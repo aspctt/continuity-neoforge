@@ -110,6 +110,20 @@ it, and `SpriteLoader.loadAndStitch` narrowed its last argument from a collectio
 python tools/check-mixin-targets.py 1.21.11
 ```
 
+### Checking the oldest NeoForge each jar accepts
+
+Each jar is compiled once, against one NeoForge build, but its metadata accepts every build back to the start of
+its line, and the 26.1 jar, built on 26.1.2, accepts 26.1 and 26.1.1 as well. `tools/check-linkage.py` reads
+every game class, method and field the compiled jar refers to and checks that each exists in another build, and
+the mixin check takes that build with `--neoforge`. CI runs both against the oldest build each range accepts,
+and the oldest of each 26.1 line. Every target passes there, so no range needed raising.
+
+```
+./gradlew :26.1:writeCompileClasspath -Pneo_version=26.1.0.1-beta -Pminecraft_version=26.1
+python tools/check-linkage.py 26.1 26.1.0.1-beta
+python tools/check-mixin-targets.py 26.1 --neoforge 26.1.0.1-beta
+```
+
 ### What changed after 1.21.5
 
 None of these was another architectural break on the scale of 1.21.5, but 1.21.11 came closer than the others.

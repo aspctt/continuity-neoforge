@@ -163,6 +163,9 @@ public class ModelReloadHandler {
 		private final CompletableFuture<Map<ResourceLocation, Set<ResourceLocation>>> allExtraIdsFuture;
 		private final Map<ResourceLocation, CompletableFuture<Set<ResourceLocation>>> extraIdsFutures = new Object2ObjectOpenHashMap<>();
 		private final EmissiveControl blockAtlasEmissiveControl;
+		//? if >=1.21.11 {
+		/*private final EmissiveControl itemAtlasEmissiveControl = new EmissiveControlImpl(null);
+		*///?}
 
 		public SpriteLoaderLoadContextImpl(CompletableFuture<Map<ResourceLocation, Set<ResourceLocation>>> allExtraIdsFuture, AtomicBoolean blockAtlasHasEmissivesHolder) {
 			this.allExtraIdsFuture = allExtraIdsFuture;
@@ -180,15 +183,23 @@ public class ModelReloadHandler {
 			if (atlasId.equals(TextureAtlas.LOCATION_BLOCKS)) {
 				return blockAtlasEmissiveControl;
 			}
+			//? if >=1.21.11 {
+			/*// 1.21.11 moved item textures onto an atlas of their own, so their emissive counterparts have to be paired
+			// there too. Only block models are wrapped based on whether an atlas has emissives, so nothing records it.
+			if (atlasId.equals(TextureAtlas.LOCATION_ITEMS)) {
+				return itemAtlasEmissiveControl;
+			}
+			*///?}
 			return null;
 		}
 
 		private static class EmissiveControlImpl implements EmissiveControl {
 			@Nullable
 			private volatile Map<ResourceLocation, ResourceLocation> emissiveIdMap;
+			@Nullable
 			private final AtomicBoolean hasEmissivesHolder;
 
-			public EmissiveControlImpl(AtomicBoolean hasEmissivesHolder) {
+			public EmissiveControlImpl(@Nullable AtomicBoolean hasEmissivesHolder) {
 				this.hasEmissivesHolder = hasEmissivesHolder;
 			}
 
@@ -205,7 +216,9 @@ public class ModelReloadHandler {
 
 			@Override
 			public void markHasEmissives() {
-				hasEmissivesHolder.set(true);
+				if (hasEmissivesHolder != null) {
+					hasEmissivesHolder.set(true);
+				}
 			}
 		}
 	}

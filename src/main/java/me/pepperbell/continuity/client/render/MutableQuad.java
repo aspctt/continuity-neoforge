@@ -401,8 +401,13 @@ public class MutableQuad implements MutableQuadView {
 		material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.isShade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
 		//?} elif <26.1 {
 		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !quad.shade(), quad.hasAmbientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
-		*///?} else
-		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !sourceMaterialInfo.shade(), sourceMaterialInfo.ambientOcclusion() ? TriState.DEFAULT : TriState.FALSE);*/
+		*///?} elif <26.3 {
+		/*material = MaterialFinder.find(BlendMode.DEFAULT, false, !sourceMaterialInfo.shade(), sourceMaterialInfo.ambientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
+		*///?} else {
+		/*// 26.3 replaced the shade flag with a face to shade as. An unshaded quad was always lit as the top face, so
+		// that face is what turning shading off maps to.
+		material = MaterialFinder.find(BlendMode.DEFAULT, false, sourceMaterialInfo.shadeDirectionOverride() == Direction.UP, sourceMaterialInfo.ambientOcclusion() ? TriState.DEFAULT : TriState.FALSE);
+		*///?}
 		tag = 0;
 		dirty = false;
 		return this;
@@ -515,6 +520,8 @@ public class MutableQuad implements MutableQuadView {
 			bakedLayer = sourceMaterialInfo == null ? ChunkSectionLayer.SOLID : sourceMaterialInfo.layer();
 		}
 
+		int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;
+		//? if <26.3 {
 		// Inferred rather than named, because the plain RenderType import is rewritten to the chunk layer from
 		// 1.21.6 and there is nothing left to spell this type with.
 		var itemRenderType = sourceMaterialInfo != null
@@ -523,8 +530,33 @@ public class MutableQuad implements MutableQuadView {
 						? (bakedLayer.translucent() ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet())
 						: (bakedLayer.translucent() ? Sheets.translucentItemSheet() : Sheets.cutoutItemSheet());
 
-		int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;
 		return new BakedQuad.MaterialInfo(sprite, bakedLayer, itemRenderType, colorIndex, shade, lightEmission, ambientOcclusion);
+		//?} else {
+		/^// 26.3 added a render type for each kind of item glint, picked the same way as the plain one. The names
+		// here avoid the word the chunk layer rewrite matches on.
+		boolean blockAtlas = sprite != null && sprite.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS);
+		boolean translucent = bakedLayer.translucent();
+		var itemSheet = sourceMaterialInfo != null ? sourceMaterialInfo.itemRenderType()
+				: blockAtlas ? (translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet())
+				: (translucent ? Sheets.translucentItemSheet() : Sheets.cutoutItemSheet());
+		var glintSheet = sourceMaterialInfo != null ? sourceMaterialInfo.itemGlintRenderType()
+				: blockAtlas ? (translucent ? Sheets.translucentBlockItemGlintSheet() : Sheets.cutoutBlockItemGlintSheet())
+				: (translucent ? Sheets.translucentItemGlintSheet() : Sheets.cutoutItemGlintSheet());
+		var specialGlintSheet = sourceMaterialInfo != null ? sourceMaterialInfo.itemGlintSpecialRenderType()
+				: blockAtlas ? (translucent ? Sheets.translucentBlockItemGlintSpecialSheet() : Sheets.cutoutBlockItemGlintSpecialSheet())
+				: (translucent ? Sheets.translucentItemGlintSpecialSheet() : Sheets.cutoutItemGlintSpecialSheet());
+
+		// Shading turned off is the top face, the reverse of how the quad was loaded. Shading left on keeps any
+		// other face the source quad was shaded as.
+		Direction shadeDirectionOverride = null;
+		if (!shade) {
+			shadeDirectionOverride = Direction.UP;
+		} else if (sourceMaterialInfo != null && sourceMaterialInfo.shadeDirectionOverride() != Direction.UP) {
+			shadeDirectionOverride = sourceMaterialInfo.shadeDirectionOverride();
+		}
+
+		return new BakedQuad.MaterialInfo(sprite, bakedLayer, itemSheet, glintSheet, specialGlintSheet, colorIndex, shadeDirectionOverride, lightEmission, ambientOcclusion);
+		^///?}
 	}
 	*///?}
 

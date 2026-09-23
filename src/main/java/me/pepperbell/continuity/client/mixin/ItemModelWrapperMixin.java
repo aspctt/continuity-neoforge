@@ -31,6 +31,8 @@ import net.minecraft.client.renderer.item.BlockModelWrapper;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//? if >=26.3
+/*import net.minecraft.client.resources.model.geometry.ItemQuads;*/
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.TriState;
@@ -62,10 +64,14 @@ abstract class ItemModelWrapperMixin {
 	@Shadow
 	@Final
 	private List<BakedQuad> quads;
-	//?} else {
+	//?} elif <26.3 {
 	/*@Shadow
 	@Final
 	private net.minecraft.client.resources.model.geometry.QuadCollection quads;
+	*///?} else {
+	/*@Shadow
+	@Final
+	private ItemQuads itemQuads;
 	*///?}
 
 	@Unique
@@ -75,6 +81,11 @@ abstract class ItemModelWrapperMixin {
 	private boolean continuity$emissiveResolved;
 	@Unique
 	private boolean continuity$emissiveAnimated;
+	//? if >=26.3 {
+	/*@Unique
+	@Nullable
+	private ItemQuads continuity$quadsWithEmissive;
+	*///?}
 
 	//? if <1.21.9 {
 	@Inject(method = "update(Lnet/minecraft/client/renderer/item/ItemStackRenderState;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/item/ItemModelResolver;Lnet/minecraft/world/item/ItemDisplayContext;Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/world/entity/LivingEntity;I)V", at = @At("TAIL"))
@@ -95,7 +106,10 @@ abstract class ItemModelWrapperMixin {
 			return;
 		}
 
+		//? if <26.3 {
 		layer.prepareQuadList().addAll(emissiveQuads);
+		//?} else
+		/*layer.setQuads(continuity$quadsWithEmissive);*/
 		//? if >=1.21.6 {
 		/*renderState.appendModelIdentityElement(CONTINUITY$EMISSIVE_MARKER);
 		if (continuity$emissiveAnimated) {
@@ -121,8 +135,10 @@ abstract class ItemModelWrapperMixin {
 		MutableQuad workingQuad = new MutableQuad();
 		//? if <26.1 {
 		List<BakedQuad> sourceQuads = quads;
-		//?} else
-		/*List<BakedQuad> sourceQuads = quads.getAll();*/
+		//?} elif <26.3 {
+		/*List<BakedQuad> sourceQuads = quads.getAll();
+		*///?} else
+		/*List<BakedQuad> sourceQuads = itemQuads.all();*/
 		int amount = sourceQuads.size();
 		for (int i = 0; i < amount; i++) {
 			BakedQuad quad = sourceQuads.get(i);
@@ -151,6 +167,16 @@ abstract class ItemModelWrapperMixin {
 			}
 			*///?}
 		}
+
+		//? if >=26.3 {
+		/*// 26.3 hands the layer a finished set of quads, split by whether they blend, instead of a list to add to. The
+		// copies go after the model's own quads so that they still draw on top of them.
+		if (emissiveQuads != null) {
+			List<BakedQuad> allQuads = new ObjectArrayList<>(sourceQuads);
+			allQuads.addAll(emissiveQuads);
+			continuity$quadsWithEmissive = ItemQuads.split(allQuads);
+		}
+		*///?}
 
 		continuity$emissiveQuads = emissiveQuads;
 		continuity$emissiveResolved = true;

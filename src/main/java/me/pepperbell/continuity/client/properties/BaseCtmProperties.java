@@ -34,6 +34,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.registries.BuiltInRegistries;
+//? if <26.3
 import net.minecraft.server.packs.VanillaPackResources;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -574,7 +575,13 @@ public class BaseCtmProperties implements CtmProperties {
 
 		String[] conditionStrs = conditionsStr.trim().split("\\|");
 		if (conditionStrs.length != 0) {
+			//? if <26.3 {
 			VanillaPackResources defaultPack = Minecraft.getInstance().getVanillaPackResources();
+			//?} else {
+			/*// 26.3 splits the game's own pack into layers that are each a pack of their own, so a resource from it no
+			// longer comes from the object the game hands out. The layers all share its id, so that is matched instead.
+			String defaultPackId = Minecraft.getInstance().getVanillaPackResources().fullResources().packId();
+			*///?}
 
 			for (int i = 0; i < conditionStrs.length; i++) {
 				String conditionStr = conditionStrs[i];
@@ -602,7 +609,10 @@ public class BaseCtmProperties implements CtmProperties {
 
 					if (packStr == null || packStr.equals("default")) {
 						Optional<Resource> optionalResource = resourceManager.getResource(resourceId);
+						//? if <26.3 {
 						if (optionalResource.isPresent() && optionalResource.get().source() != defaultPack) {
+						//?} else
+						/*if (optionalResource.isPresent() && !optionalResource.get().sourcePackId().equals(defaultPackId)) {*/
 							valid = false;
 							break;
 						}

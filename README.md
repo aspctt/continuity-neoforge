@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/Available_for-1.21.1_--_26.2-blue)
+![Version](https://img.shields.io/badge/Available_for-1.21.1_--_26.3-blue)
 ![Requires](https://img.shields.io/badge/Requires-Nothing-brightgreen)
 ![License](https://img.shields.io/badge/License-LGPL--3.0--only-red)
 
@@ -64,14 +64,16 @@ Declared targets and where they stand:
 | Target | Covers | NeoForge | Model API | Builds | Loads and reads packs | Rendering confirmed |
 |---|---|---|---|---|---|---|
 | 1.21.1 | 1.21.1 | 21.1.249 | baked model | yes | yes | connected textures confirmed |
-| 1.21.11 | 1.21.11 | 21.11.45 | block state model | yes | yes | not yet |
-| 26.1 | 26.1, 26.1.1, 26.1.2 | 26.1.2.103 | block state model | yes | yes | not yet |
-| 26.2 | 26.2 | 26.2.0.76 | block state model | yes | yes | not yet |
+| 1.21.11 | 1.21.11 | 21.11.45 | block state model | yes | yes | connected textures confirmed |
+| 26.1 | 26.1, 26.1.1, 26.1.2 | 26.1.2.103 | block state model | yes | yes | connected textures confirmed |
+| 26.2 | 26.2 | 26.2.0.76 | block state model | yes | yes | connected textures confirmed |
+| 26.3 | 26.3 | 26.3.0.12-beta | block state model | yes | yes | connected textures confirmed |
 
 Every target starts: all mixins apply, both built-in packs register, and the Default Connected Textures pack
 parses into the same 42 quad processors with no errors of Continuity's own.
 
-Connected textures have only been confirmed rendering correctly on 1.21.1. The rest are unverified in game.
+Connected textures have been confirmed rendering in game on every target. NeoForge for 26.3 is still in beta, so
+that target is built against a beta.
 
 One target per model API band is kept, which is what holds all three code paths compiled and checked. The
 directives in the source still name the versions in between, because that is where the changes they guard
@@ -151,8 +153,8 @@ exactly the same version. That splits the range into three bands, not one gradie
 | Band | Versions | Model API | State |
 |---|---|---|---|
 | A | 1.21 - 1.21.4 | `BakedModel` and model data | working |
-| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | all targets start, none confirmed rendering |
-| C | 26.1 - 26.2 | `BlockStateModel`, reworked again | both targets start, neither confirmed rendering |
+| B | 1.21.5 - 1.21.11 | `BlockStateModel` and block model parts | 1.21.11 starts and renders |
+| C | 26.1 - 26.3 | `BlockStateModel`, reworked again | all three targets start and render |
 
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has
 its own model layer under `client/model/`: `bakedmodel` for band A, `blockstatemodel` for band B. Only the

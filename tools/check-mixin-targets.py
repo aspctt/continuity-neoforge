@@ -115,6 +115,9 @@ class Classpath:
 		return any(self.has_member(sup, mname, mdesc, seen) is True for sup in self.supertypes(out))
 
 
+ACTIVE = re.search(r'stonecutter active "([^"]+)"', io.open("stonecutter.gradle.kts", encoding="utf-8").read()).group(1)
+
+
 def neo_version(version):
 	props = io.open("versions/%s/gradle.properties" % version, encoding="utf-8").read()
 	return re.search(r'^neo_version=(\S+)', props, re.M).group(1)
@@ -133,8 +136,10 @@ def check_version(version, neo):
 	jars += glob.glob(os.path.join(cache, "*", "neoforge-%s-universal.jar" % neo))
 	cp = Classpath(jars)
 
+	# The active version compiles straight from src/main/java, so anything in its generated folder is left over from
+	# a time when another version was active, and stale.
 	root = "versions/%s/build/generated/stonecutter/main/java/me/pepperbell/continuity/client/mixin" % version
-	if not os.path.isdir(root):
+	if version == ACTIVE or not os.path.isdir(root):
 		root = "src/main/java/me/pepperbell/continuity/client/mixin"
 
 	# The generated mixin config is the authority on which mixins this target actually applies; the source

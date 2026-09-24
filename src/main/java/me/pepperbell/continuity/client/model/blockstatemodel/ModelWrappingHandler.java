@@ -102,7 +102,10 @@ public class ModelWrappingHandler {
 					}
 				}
 			}
-		} catch (RuntimeException e) {
+		} catch (RuntimeException | LinkageError e) {
+			// This runs another mod's code during the resource reload, where anything thrown fails the reload and
+			// takes every resource pack with it. A model reaching for a mod that is not installed throws an error
+			// rather than an exception.
 			ContinuityClient.LOGGER.debug("Could not read the textures of model {} for {}, leaving it unwrapped", model, state, e);
 			return null;
 		}

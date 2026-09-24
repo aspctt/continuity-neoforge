@@ -130,7 +130,9 @@ public final class ForeignModelFilter {
 		}
 		try {
 			return type.getMethod(DEFAULT_GET_APPEARANCE.getName(), DEFAULT_GET_APPEARANCE.getParameterTypes()).getDeclaringClass() != IBlockExtension.class;
-		} catch (NoSuchMethodException e) {
+		} catch (NoSuchMethodException | LinkageError e) {
+			// Looking up one method loads the types of every public method on the class, so a block that names a
+			// class from a mod that is not installed throws here. It is wrapped as it always was.
 			return true;
 		}
 	}

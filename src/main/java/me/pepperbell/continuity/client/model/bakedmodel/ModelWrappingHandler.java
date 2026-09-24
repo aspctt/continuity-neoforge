@@ -119,10 +119,16 @@ public class ModelWrappingHandler {
 				Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
 				random.setSeed(42L);
 				for (BakedQuad quad : model.getQuads(state, cullFace, random, ModelData.EMPTY, null)) {
-					sprites.add(quad.getSprite());
+					TextureAtlasSprite sprite = quad.getSprite();
+					if (sprite != null) {
+						sprites.add(sprite);
+					}
 				}
 			}
-		} catch (RuntimeException e) {
+		} catch (RuntimeException | LinkageError e) {
+			// This runs another mod's code during the resource reload, where anything thrown fails the reload and
+			// takes every resource pack with it. A model reaching for a mod that is not installed throws an error
+			// rather than an exception.
 			ContinuityClient.LOGGER.debug("Could not read the textures of model {} for {}, leaving it unwrapped", model, state, e);
 			return null;
 		}

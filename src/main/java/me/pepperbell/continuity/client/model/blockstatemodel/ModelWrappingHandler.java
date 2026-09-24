@@ -41,7 +41,6 @@ public class ModelWrappingHandler {
 	private final boolean wrapCtm;
 	private final boolean wrapEmissive;
 	private final ForeignModelFilter foreignModelFilter;
-	private final MutableQuad workingQuad = new MutableQuad();
 
 	private ModelWrappingHandler(List<QuadProcessors.ProcessorHolder> processorHolders, boolean wrapEmissive) {
 		wrapCtm = !processorHolders.isEmpty();
@@ -57,7 +56,14 @@ public class ModelWrappingHandler {
 		return new ModelWrappingHandler(processorHolders, wrapEmissive);
 	}
 
-	public BlockStateModel wrap(BlockStateModel model, BlockState state) {
+	@Nullable
+	public BlockStateModel wrap(@Nullable BlockStateModel model, BlockState state) {
+		// ModernFix's dynamic resources bakes models as they are asked for, and hands out none for a state whose model
+		// did not bake. The game draws that state with the missing model, so there is nothing to wrap.
+		if (model == null) {
+			return null;
+		}
+
 		boolean wrapCtm = this.wrapCtm;
 		boolean wrapEmissive = this.wrapEmissive;
 		if (ForeignModelFilter.isForeign(model) && !ForeignModelFilter.takesAppearance(state.getBlock())) {
@@ -88,6 +94,8 @@ public class ModelWrappingHandler {
 	private Set<TextureAtlasSprite> collectSprites(BlockStateModel model, BlockState state) {
 		List<BlockModelPart> parts = new ObjectArrayList<>();
 		Set<TextureAtlasSprite> sprites = new ReferenceOpenHashSet<>();
+		// One per call, since models baked on demand are baked, and wrapped, on whichever thread asks for them.
+		MutableQuad workingQuad = new MutableQuad();
 		try {
 			// The overload without a level hands a dynamic model air as its state, so the real one is passed instead.
 			model.collectParts(EMPTY_LEVEL, BlockPos.ZERO, state, RandomSource.create(42L), parts);
@@ -115,8 +123,10 @@ public class ModelWrappingHandler {
 	@ApiStatus.Internal
 	public void wrapAll(Map<BlockState, BlockStateModel> models) {
 		for (Map.Entry<BlockState, BlockStateModel> entry : models.entrySet()) {
-			BlockStateModel wrapped = wrap(entry.getValue(), entry.getKey());
-			if (wrapped != entry.getValue()) {
+			// Read once, because a map that bakes on demand looks the model up again on every read.
+			BlockStateModel model = entry.getValue();
+			BlockStateModel wrapped = wrap(model, entry.getKey());
+			if (wrapped != model) {
 				entry.setValue(wrapped);
 			}
 		}

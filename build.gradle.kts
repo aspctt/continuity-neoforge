@@ -32,7 +32,8 @@ repositories {
     maven("https://maven.caffeinemc.net/releases") {
         content { includeGroup("net.caffeinemc") }
     }
-    // The Sodium mod jar itself, added to the development run only so the config page can be looked at.
+    // The Sodium mod jar itself, added to the development run only so the config page can be looked at, and the
+    // ModernFix jar, compiled against for its integration interface.
     maven("https://api.modrinth.com/maven") {
         content { includeGroup("maven.modrinth") }
     }
@@ -42,6 +43,11 @@ repositories {
 // 1.21.3 through 1.21.10 have no such API at all. A target declares the version it can compile against, and
 // one that declares none neither compiles the entry point nor points the mod metadata at it.
 val sodiumApiVersion: String? = findProperty("sodium_api_version") as String?
+
+// ModernFix can bake models only when they are first asked for, and says so to any mod that names an entry point for
+// it in the mod metadata. It only ships for some of the targets, and a target that declares no version neither
+// compiles the entry point nor applies the mixin that wraps models as they are baked.
+val modernFixVersion: String? = findProperty("modernfix_version") as String?
 
 // Mojang ships Java 21 to end users through 1.21.11, and Java 25 from 26.1.
 java.toolchain.languageVersion = JavaLanguageVersion.of(if (versionAtLeast("26.1")) 25 else 21)
@@ -139,12 +145,15 @@ val clientMixins = buildList {
         // NeoForge dropped its experimental light pipeline along with the model data it fed.
         add("QuadLighterMixin")
     }
+    if (modernFixVersion != null) {
+        add("ModelBakeryMixin")
+    }
 }.sorted()
 
 val allMixins = listOf(
     "AtlasManagerMixin",
     "BlockModelShaperMixin", "FallbackResourceManagerMixin", "ItemBlockRenderTypesMixin",
-    "ItemModelWrapperMixin", "ItemRendererMixin", "ModelBlockRendererMixin", "ModelManagerMixin",
+    "ItemModelWrapperMixin", "ItemRendererMixin", "ModelBakeryMixin", "ModelBlockRendererMixin", "ModelManagerMixin",
     "MultiPackResourceManagerMixin", "QuadLighterMixin", "ReloadableResourceManagerAccessor",
     "RenderRegionAccessor", "ResourceLocationMixin", "SpriteLoaderMixin", "SpriteSourceListMixin",
     "TextureAtlasSpriteMixin",
@@ -183,6 +192,17 @@ val sodiumEntryPoint = if (sodiumApiVersion == null) {
             "\"sodium:config_api_user\" = \"me.pepperbell.continuity.client.config.SodiumConfigImpl\""
 }
 
+if (modernFixVersion == null) {
+    sourceSets.main.get().java.exclude("**/resource/ModernFixIntegration.java")
+}
+
+// Read by ModernFix off the mod's own entry, rather than from its properties, so it sits inside [[mods]].
+val modernFixEntryPoint = if (modernFixVersion == null) {
+    ""
+} else {
+    "\"modernfix:integration\" = { client_entrypoint = \"me.pepperbell.continuity.client.resource.ModernFixIntegration\" }"
+}
+
 val javaVersion = if (versionAtLeast("26.1")) 25 else 21
 val clientMixinList = clientMixins.joinToString(",\n    ") { "\"$it\"" }
 
@@ -198,6 +218,10 @@ dependencies {
         // compile time contract and nothing more.
         compileOnly("net.caffeinemc:sodium-neoforge-api:$sodiumApiVersion")
         sodiumRuntime("maven.modrinth:sodium:${prop("sodium_version")}")
+    }
+    if (modernFixVersion != null) {
+        // Only the integration interface is used, and ModernFix instantiates the class that implements it itself.
+        compileOnly("maven.modrinth:modernfix:$modernFixVersion")
     }
 }
 
@@ -220,6 +244,7 @@ val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata"
         "client_mixins" to clientMixinList,
         "java_version" to javaVersion.toString(),
         "sodium_entry_point" to sodiumEntryPoint,
+        "modernfix_entry_point" to modernFixEntryPoint,
     )
     inputs.properties(replaceProperties)
     expand(replaceProperties)

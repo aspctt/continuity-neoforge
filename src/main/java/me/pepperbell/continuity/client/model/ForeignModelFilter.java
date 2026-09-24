@@ -2,12 +2,13 @@ package me.pepperbell.continuity.client.model;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import me.pepperbell.continuity.api.client.CachingPredicates;
 import me.pepperbell.continuity.api.client.EmissiveSpriteApi;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -41,7 +42,9 @@ public final class ForeignModelFilter {
 
 	private final CachingPredicates[] spritePredicates;
 	private final CachingPredicates[] otherPredicates;
-	private final Reference2ObjectOpenHashMap<TextureAtlasSprite, CachingPredicates[]> predicatesBySprite = new Reference2ObjectOpenHashMap<>();
+	// Concurrent, because models baked on demand are filtered on whichever thread asks for them. Sprites compare by
+	// identity, so this keys on the sprite itself just as an identity map would.
+	private final Map<TextureAtlasSprite, CachingPredicates[]> predicatesBySprite = new ConcurrentHashMap<>();
 
 	public ForeignModelFilter(List<QuadProcessors.ProcessorHolder> processorHolders) {
 		List<CachingPredicates> spritePredicates = new ObjectArrayList<>();

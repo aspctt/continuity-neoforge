@@ -35,6 +35,8 @@ Sodium fits by design rather than by luck, and the parts that can be checked wit
 
 Embeddium is untested and unexamined.
 
+ModernFix's dynamic resources option bakes a block model only when something first asks for it, and can drop it and bake it again later, so most models are baked long after the baking event Continuity normally wraps them in. On 1.21.1 and 26.1, the two targets ModernFix ships for, its integration entry point tells Continuity when the option is on. Continuity then builds its processors before baking starts and wraps each model as it is baked, through the same lambda the game and ModernFix both bake through. Connected and emissive textures have been seen working that way on both targets, and without ModernFix on both as before.
+
 The interesting part of the work is the renderer. Upstream is built on the Fabric Rendering API, whose mesh and quad-emitter model NeoForge has no equivalent of. Rather than reimplement that API wholesale, the processing pipeline here runs on a small quad abstraction backed directly by vanilla `BakedQuad` vertex arrays, and results are handed to the game the NeoForge way:
 
 * Connection state is resolved in `BakedModel#getModelData`, which NeoForge calls once per block per chunk rebuild with the level and position available. No thread-local hack around `getQuads`.

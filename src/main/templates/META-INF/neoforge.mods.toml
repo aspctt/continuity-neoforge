@@ -11,6 +11,7 @@ description = '''${mod_description}'''
 ${icon_fields}
 authors = "${mod_authors}"
 displayURL = "https://modrinth.com/mod/continuity-neoforged"
+${modernfix_entry_point}
 
 [[mixins]]
 config = "${mod_id}.mixins.json"

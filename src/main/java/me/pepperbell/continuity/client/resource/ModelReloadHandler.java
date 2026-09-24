@@ -36,10 +36,16 @@ import net.neoforged.neoforge.client.event.ModelEvent;
  * the atlas one from 1.21.11; {@link ModelEvent.ModifyBakingResult} builds the processors and wraps the models,
  * since it fires after stitching but before the block state cache is filled; and {@link ModelEvent.BakingCompleted}
  * publishes the processors to the renderer.
+ *
+ * <p>ModernFix can bake models only when they are first asked for, some of them long after the reload. When it does,
+ * the processors are built as baking starts instead, and {@code ModelBakeryMixin} wraps each model as it is baked.
  */
 public class ModelReloadHandler {
 	@Nullable
 	private static volatile ModelReloadHandler current;
+	private static volatile boolean modelsBakedOnDemand;
+	@Nullable
+	private static volatile ModelWrappingHandler onDemandWrappingHandler;
 
 	private final CompletableFuture<CtmPropertiesLoader.LoadingResult> ctmLoadingResultFuture;
 	private final AtomicBoolean wrapEmissiveModels = new AtomicBoolean();
@@ -47,6 +53,7 @@ public class ModelReloadHandler {
 	private volatile List<QuadProcessors.ProcessorHolder> processorHolders;
 	@Nullable
 	private volatile Function<Material, TextureAtlasSprite> silentTextureGetter;
+	private volatile boolean preparedOnDemand;
 
 	public ModelReloadHandler(ResourceManager resourceManager, Executor prepareExecutor) {
 		ctmLoadingResultFuture = CompletableFuture.supplyAsync(() -> CtmPropertiesLoader.loadAllWithState(resourceManager), prepareExecutor);
@@ -96,6 +103,40 @@ public class ModelReloadHandler {
 		return ModelWrappingHandler.create(processorHolders, wrapEmissiveModels.get());
 	}
 
+	/**
+	 * Builds the processors before any model is baked, for when models are baked on demand.
+	 *
+	 * <p>The first model can then be asked for as soon as baking starts, well ahead of the baking event, and the rest
+	 * only as the world comes to draw them. Every one is wrapped as it is baked, by the handler this leaves in place
+	 * until the next reload replaces it.
+	 */
+	public void prepareOnDemandWrapping(Function<Material, TextureAtlasSprite> fallbackTextureGetter) {
+		onDemandWrappingHandler = beforeBaking(fallbackTextureGetter);
+		preparedOnDemand = true;
+	}
+
+	/**
+	 * Whether models are baked only when first asked for rather than all at once during the reload, which ModernFix
+	 * does with its dynamic resources option on.
+	 */
+	public static boolean areModelsBakedOnDemand() {
+		return modelsBakedOnDemand;
+	}
+
+	@ApiStatus.Internal
+	public static void setModelsBakedOnDemand(boolean onDemand) {
+		modelsBakedOnDemand = onDemand;
+	}
+
+	/**
+	 * {@return the handler that a model baked on demand goes through, or {@code null} if models are baked all at once
+	 * or no loaded pack has anything to wrap them for}
+	 */
+	@Nullable
+	public static ModelWrappingHandler getOnDemandWrappingHandler() {
+		return onDemandWrappingHandler;
+	}
+
 	public void apply() {
 		List<QuadProcessors.ProcessorHolder> processorHolders = this.processorHolders;
 		if (processorHolders != null) {
@@ -128,7 +169,9 @@ public class ModelReloadHandler {
 
 	private static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
 		ModelReloadHandler handler = current;
-		if (handler == null) {
+		// Models baked on demand are wrapped as they are baked. Going through them all here would bake every one of
+		// them up front, which is the very thing baking on demand exists to avoid.
+		if (handler == null || handler.preparedOnDemand) {
 			return;
 		}
 

@@ -36,6 +36,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * <p>{@code ModelReloadHandler} drives this from the model baking event, which fires after every model is baked but
  * before the block state to model cache is built, so a wrapper put in place here is what the world actually renders.
  * It runs at the lowest priority so that other mods have already applied their own wrappers and ours sits outermost.
+ * When ModernFix bakes models on demand, {@code ModelBakeryMixin} wraps each one as it is baked instead.
  */
 public class ModelWrappingHandler {
 	private static final Direction[] DIRECTIONS = Direction.values();
@@ -138,8 +139,10 @@ public class ModelWrappingHandler {
 	@ApiStatus.Internal
 	public void wrapAll(Map<ModelResourceLocation, BakedModel> models) {
 		for (Map.Entry<ModelResourceLocation, BakedModel> entry : models.entrySet()) {
-			BakedModel wrapped = wrap(entry.getValue(), entry.getKey());
-			if (wrapped != entry.getValue()) {
+			// Read once, because a map that bakes on demand looks the model up again on every read.
+			BakedModel model = entry.getValue();
+			BakedModel wrapped = wrap(model, entry.getKey());
+			if (wrapped != model) {
 				entry.setValue(wrapped);
 			}
 		}

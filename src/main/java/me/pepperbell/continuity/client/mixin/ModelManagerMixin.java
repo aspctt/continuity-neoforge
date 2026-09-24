@@ -146,5 +146,14 @@ abstract class ModelManagerMixin {
 			return sprite != null ? sprite : preparations.missing();
 		});
 		*///?}
+
+		// Baking starts inside this method, and a model baked on demand can be asked for from its first moment.
+		if (ModelReloadHandler.areModelsBakedOnDemand()) {
+			//? if <1.21.9 {
+			TextureAtlasSprite missingSprite = stitchResults.get(TextureAtlas.LOCATION_BLOCKS).missing();
+			//?} else
+			/*TextureAtlasSprite missingSprite = preparations.missing();*/
+			handler.prepareOnDemandWrapping(material -> missingSprite);
+		}
 	}
 }

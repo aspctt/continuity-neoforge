@@ -47,3 +47,7 @@
 <h3>License</h3>
 
 <p>LGPL-3.0-only, the same as upstream, with the full terms in <a href="https://github.com/aspctt/continuity-neoforge/blob/main/LICENSE">LICENSE</a>. This is a derivative work: if you distribute the JAR, you must make the source available to whoever you distribute it to.</p>
+
+<p style="text-align: center;">
+	<a alt="BuyMeACoffee" href="https://buymeacoffee.com/aspctt"><img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
+</p>

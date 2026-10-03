@@ -44,3 +44,9 @@ NeoForge, and nothing else. A separate file is built for every Minecraft version
 ### License
 
 LGPL-3.0-only, the same as upstream, with the full terms in [LICENSE](https://github.com/aspctt/continuity-neoforge/blob/main/LICENSE). This is a derivative work: if you distribute the JAR, you must make the source available to whoever you distribute it to.
+
+<div align="center">
+
+[![BuyMeACoffee](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg)](https://buymeacoffee.com/aspctt)
+
+</div>

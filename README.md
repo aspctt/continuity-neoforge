@@ -219,3 +219,7 @@ This fork keeps the original licence, package names, and copyright. It is a deri
 ### Built on
 
 * [NeoForge](https://neoforged.net/) - mod loader
+
+<p align=center>
+	<a alt="BuyMeACoffee" href="https://buymeacoffee.com/aspctt"><img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
+</p>

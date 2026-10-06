@@ -1,19 +1,25 @@
-# <p align=center> Continuity (NeoForge) </p>
+# <p align=center style="text-align: center;"> Continuity (NeoForge) </p>
 
-<div align="center">
+<p align="center" style="text-align: center;">
+	<img alt="Available for" src="https://img.shields.io/badge/Available_for-1.21.1_--_26.3-blue">
+	<img alt="Requires" src="https://img.shields.io/badge/Requires-Nothing-brightgreen">
+	<img alt="License" src="https://img.shields.io/badge/License-LGPL--3.0--or--only-red">
+</p>
 
-![Version](https://img.shields.io/badge/Available_for-1.21.1_--_26.3-blue)
-![Requires](https://img.shields.io/badge/Requires-Nothing-brightgreen)
-![License](https://img.shields.io/badge/License-LGPL--3.0--only-red)
+<p align="center" style="text-align: center;">
+	<img alt="Available for NeoForge" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/neoforge_vector.svg">
+	<img alt="Won't support Forge" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/unsupported/forge_vector.svg">
+</p>
 
-![NeoForge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/neoforge_vector.svg)
-![Forge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/unsupported/forge_vector.svg)
+<p align="center" style="text-align: center;">
+	<a alt="Buy Me a Coffee" href="https://buymeacoffee.com/aspctt"><img alt="Buy Me a Coffee" height="40" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/donate/buymeacoffee-singular_vector.svg"></a>
+</p>
 
-[![GitHub](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/github_vector.svg)](https://github.com/aspctt/continuity-neoforge)
-[![Modrinth](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/modrinth_vector.svg)](https://modrinth.com/mod/continuity-neoforged)
-[![CurseForge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/curseforge_vector.svg)](https://www.curseforge.com/minecraft/mc-mods/continuity-neoforged)
-
-</div>
+<p align="center" style="text-align: center;">
+	<a alt="Available on GitHub" href="https://github.com/aspctt/continuity-neoforge"><img alt="Available on GitHub" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/github_vector.svg"></a>
+	<a alt="Available on Modrinth" href="https://modrinth.com/mod/continuity-neoforged"><img alt="Available on Modrinth" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/modrinth_vector.svg"></a>
+	<a alt="Available on CurseForge" href="https://www.curseforge.com/minecraft/mc-mods/continuity-neoforged"><img alt="Available on CurseForge" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact-minimal/available/curseforge_vector.svg"></a>
+</p>
 
 Continuity makes resource packs that use the OptiFine connected textures, emissive textures, and custom block layers formats work without OptiFine. It is client side only, and this build is native NeoForge: no Sinytra Connector, no Fabric API, nothing else to install.
 
@@ -44,9 +50,3 @@ NeoForge, and nothing else. A separate file is built for every Minecraft version
 ### License
 
 LGPL-3.0-only, the same as upstream, with the full terms in [LICENSE](https://github.com/aspctt/continuity-neoforge/blob/main/LICENSE). This is a derivative work: if you distribute the JAR, you must make the source available to whoever you distribute it to.
-
-<div align="center">
-
-[![BuyMeACoffee](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg)](https://buymeacoffee.com/aspctt)
-
-</div>

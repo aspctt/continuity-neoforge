@@ -180,8 +180,14 @@ public class ModelReloadHandler {
 		//?} elif <26.1 {
 		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.texture()));
-		*///?} else {
+		*///?} elif <26.3 {
 		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();
+		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.sprite()));
+		*///?} else {
+		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = location -> {
+            TextureAtlasSprite sprite = event.getBlockAtlasPreparations().getSprite(location);
+            return (sprite != null) ? sprite : event.getBlockAtlasPreparations().missing();
+        };
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.sprite()));
 		*///?}
 		if (wrappingHandler != null) {

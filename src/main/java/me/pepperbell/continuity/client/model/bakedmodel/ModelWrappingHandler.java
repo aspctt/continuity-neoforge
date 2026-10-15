@@ -76,9 +76,9 @@ public class ModelWrappingHandler {
 
 	public BakedModel wrap(@Nullable BakedModel model, @Nullable ModelResourceLocation topLevelId) {
 		//? if <1.21.2 {
-		if (model == null || model.isCustomRenderer() || ModelBakery.MISSING_MODEL_VARIANT.equals(topLevelId)) {
+		if (model == null || isCustomRenderer(model) || ModelBakery.MISSING_MODEL_VARIANT.equals(topLevelId)) {
 		//?} elif <1.21.4 {
-		/*if (model == null || model.isCustomRenderer() || MissingBlockModel.VARIANT.equals(topLevelId)) {
+		/*if (model == null || isCustomRenderer(model) || MissingBlockModel.VARIANT.equals(topLevelId)) {
 		*///?} else
 		/*if (model == null || MissingBlockModel.VARIANT.equals(topLevelId)) {*/
 			return model;
@@ -106,6 +106,24 @@ public class ModelWrappingHandler {
 		}
 		return model;
 	}
+
+	//? if <1.21.4 {
+	/**
+	 * Whether something other than its quads draws a model. A model that throws when asked is treated as one, so it is
+	 * left alone.
+	 */
+	private static boolean isCustomRenderer(BakedModel model) {
+		try {
+			return model.isCustomRenderer();
+		} catch (RuntimeException | LinkageError e) {
+			// Another mod's model answers this, during the resource reload, where anything thrown fails the reload and
+			// takes every resource pack with it. Quark's tiny potato model throws here when the model it wraps is
+			// missing.
+			ContinuityClient.LOGGER.debug("Could not ask model {} how it is drawn, leaving it unwrapped", model, e);
+			return true;
+		}
+	}
+	//?}
 
 	/**
 	 * Collects the sprites a model draws when there is no level to ask, or {@code null} if the model cannot be asked

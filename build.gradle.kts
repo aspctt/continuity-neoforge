@@ -264,6 +264,17 @@ java {
     withSourcesJar()
 }
 
+// Jars from earlier versions are cleared out before new ones are written, so build/libs only ever holds what is
+// about to be uploaded and an old file cannot be picked by mistake.
+val currentJarName = "$modArchivesName-$version"
+val deleteOldJars = tasks.register<Delete>("deleteOldJars") {
+    delete(fileTree(layout.buildDirectory.dir("libs")) {
+        exclude("$currentJarName.jar", "$currentJarName-sources.jar")
+    })
+}
+tasks.named("jar") { dependsOn(deleteOldJars) }
+tasks.named("sourcesJar") { dependsOn(deleteOldJars) }
+
 publishing {
     publications {
         register<MavenPublication>("mavenJava") {

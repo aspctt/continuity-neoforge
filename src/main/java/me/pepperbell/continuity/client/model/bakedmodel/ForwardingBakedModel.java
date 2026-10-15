@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -12,6 +15,8 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
@@ -91,6 +96,45 @@ public abstract class ForwardingBakedModel implements BakedModel {
 	@Override
 	public boolean isCustomRenderer() {
 		return originalModel.isCustomRenderer();
+	}
+
+	/**
+	 * Wraps a model that the wrapped one hands out to be drawn in its place, such as the one it draws for a display
+	 * context. Wrappers that only matter for blocks leave it as it is.
+	 */
+	protected BakedModel rewrap(BakedModel model) {
+		return model;
+	}
+
+	// A model can draw a different model for each display context, as NeoForge's separate transforms loader does for an
+	// item held in hand, so the choice has to be left to it. The default would apply our transforms to ourselves and
+	// draw the base model in every context.
+	@Override
+	public BakedModel applyTransform(ItemDisplayContext context, PoseStack poseStack, boolean applyLeftHandTransform) {
+		BakedModel transformed = originalModel.applyTransform(context, poseStack, applyLeftHandTransform);
+		return transformed == originalModel ? this : rewrap(transformed);
+	}
+
+	// Composite and layered item models draw in several passes, each a model of its own, where the default would draw
+	// just us in one.
+	@Override
+	public List<BakedModel> getRenderPasses(ItemStack itemStack, boolean fabulous) {
+		List<BakedModel> passes = originalModel.getRenderPasses(itemStack, fabulous);
+		if (passes.size() == 1 && passes.get(0) == originalModel) {
+			return List.of(this);
+		}
+
+		List<BakedModel> wrappedPasses = new ObjectArrayList<>(passes.size());
+		for (BakedModel pass : passes) {
+			wrappedPasses.add(pass == originalModel ? this : rewrap(pass));
+		}
+		return wrappedPasses;
+	}
+
+	// The render type a model names in its JSON is only known to the model itself.
+	@Override
+	public List<RenderType> getRenderTypes(ItemStack itemStack, boolean fabulous) {
+		return originalModel.getRenderTypes(itemStack, fabulous);
 	}
 	//?}
 

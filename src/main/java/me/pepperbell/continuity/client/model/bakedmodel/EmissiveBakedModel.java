@@ -64,6 +64,14 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 		super(wrapped);
 	}
 
+	//? if <1.21.4 {
+	// Made per draw rather than kept, because a model is free to hand out a new model each time it is asked.
+	@Override
+	protected BakedModel rewrap(BakedModel model) {
+		return new EmissiveBakedModel(model);
+	}
+	//?}
+
 	@Override
 	public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
 		ModelData data = super.getModelData(level, pos, state, modelData);

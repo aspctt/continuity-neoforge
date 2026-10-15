@@ -180,9 +180,14 @@ public class ModelReloadHandler {
 		//?} elif <26.1 {
 		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.texture()));
-		*///?} else {
+		*///?} elif <26.3 {
 		/*Function<ResourceLocation, TextureAtlasSprite> eventTextureGetter = event.getTextureGetter();
 		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> eventTextureGetter.apply(material.sprite()));
+		*///?} else {
+		/*// NeoForge took the texture getter off this event in 26.3.0.43-beta, and the jar also runs on the builds before
+		// that, so the event is not asked for one. The lookup ModelManagerMixin hands over finds every sprite, falling
+		// back to the missing one by itself, so a fallback of our own is never reached.
+		ModelWrappingHandler wrappingHandler = handler.beforeBaking(material -> null);
 		*///?}
 		if (wrappingHandler != null) {
 			//? if <1.21.4 {

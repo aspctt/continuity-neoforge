@@ -1,4 +1,4 @@
-package me.pepperbell.continuity.client.model.bakedmodel;
+package me.pepperbell.continuity.client.model;
 
 import java.util.List;
 import java.util.function.Function;
@@ -6,10 +6,9 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
-import me.pepperbell.continuity.client.model.QuadProcessors;
-import me.pepperbell.continuity.client.model.ModelObjectsContainer;
 import me.pepperbell.continuity.api.client.QuadProcessor;
 import me.pepperbell.continuity.client.config.ContinuityConfig;
+import me.pepperbell.continuity.client.model.bakedmodel.ForwardingBakedModel;
 import me.pepperbell.continuity.client.render.MutableQuad;
 import me.pepperbell.continuity.client.render.QuadCollection;
 import me.pepperbell.continuity.client.render.QuadCollector;

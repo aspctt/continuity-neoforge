@@ -11,6 +11,8 @@ import com.google.common.collect.ImmutableMap;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import me.pepperbell.continuity.client.ContinuityClient;
+import me.pepperbell.continuity.client.model.CtmBakedModel;
+import me.pepperbell.continuity.client.model.EmissiveBakedModel;
 import me.pepperbell.continuity.client.model.ForeignModelFilter;
 import me.pepperbell.continuity.client.model.QuadProcessors;
 import net.minecraft.client.renderer.block.BlockModelShaper;

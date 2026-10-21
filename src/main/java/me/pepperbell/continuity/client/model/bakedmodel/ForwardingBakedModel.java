@@ -37,6 +37,16 @@ public abstract class ForwardingBakedModel implements BakedModel {
 		this.originalModel = originalModel;
 	}
 
+	/**
+	 * The model this one wraps.
+	 *
+	 * <p>Named after the method the original Continuity's wrappers inherit from Fabric's {@code ForwardingBakedModel},
+	 * because other mods unwrap ours through it. Additional Placements does, to get at the model it rotates.
+	 */
+	public BakedModel getWrappedModel() {
+		return originalModel;
+	}
+
 	@Override
 	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
 		return originalModel.getQuads(state, side, rand);

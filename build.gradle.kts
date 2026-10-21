@@ -86,7 +86,9 @@ neoForge {
 // The model layer is written twice, because 1.21.5 replaced BakedModel with BlockStateModel and dropped the
 // model data the older one carries its results on. The two share nothing but the processors they drive, so
 // each lives in its own package and only the one matching this version is compiled. They stay under
-// src/main/java because that is the only tree Stonecutter preprocesses.
+// src/main/java because that is the only tree Stonecutter preprocesses. CtmBakedModel and EmissiveBakedModel
+// are the exception, kept in model under the names the original Continuity gave them, because other mods look
+// them up by name. Additional Placements does.
 // Compared numerically, because 1.21.10 sorts before 1.21.5 as a string.
 fun versionAtLeast(target: String): Boolean {
     fun parts(version: String) = version.split('.').map { it.toIntOrNull() ?: 0 }
@@ -102,7 +104,11 @@ fun versionAtLeast(target: String): Boolean {
 
 val usesBlockStateModel = versionAtLeast("1.21.5")
 sourceSets.main.get().java.exclude(
-    if (usesBlockStateModel) "**/model/bakedmodel/**" else "**/model/blockstatemodel/**"
+    if (usesBlockStateModel) {
+        listOf("**/model/bakedmodel/**", "**/model/CtmBakedModel.java", "**/model/EmissiveBakedModel.java")
+    } else {
+        listOf("**/model/blockstatemodel/**")
+    }
 )
 
 // From 26.1 the renderer folds a quad's light emission into the lightmap itself, so nothing has to force the

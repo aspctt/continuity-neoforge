@@ -181,7 +181,9 @@ exactly the same version. That splits the range into three bands, not one gradie
 Within a band the differences are small enough for `//?` directives. Across one they are not, so each band has
 its own model layer under `client/model/`: `bakedmodel` for band A, `blockstatemodel` for band B. Only the
 package matching the target is compiled. They sit under `src/main/java` rather than in separate source roots
-because that is the only tree Stonecutter preprocesses.
+because that is the only tree Stonecutter preprocesses. Band A's `CtmBakedModel` and `EmissiveBakedModel` sit
+directly in `client/model/` instead, under the names the original Continuity gave them, because other mods look
+them up by name.
 
 Band B is the simpler of the two. NeoForge hands the level and position straight to `collectParts`, so results
 no longer have to be routed through model data, and a render type belongs to a part rather than needing a set

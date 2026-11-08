@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 1.21.1: Blocks with random model variants, such as Alacrity's moss, switching to a different variant whenever a nearby block changed, if they had emissive textures
+
 ## [3.0.9] - 2026-10-21
 
 ### Fixed

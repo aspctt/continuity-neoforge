@@ -90,7 +90,7 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 			return data;
 		}
 
-		QuadCollection processed = process(state, data, container, quadTransform);
+		QuadCollection processed = process(pos, state, data, container, quadTransform);
 		if (processed == null) {
 			return data;
 		}
@@ -98,9 +98,14 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 	}
 
 	@Nullable
-	private QuadCollection process(BlockState state, ModelData data, ModelObjectsContainer container, EmissiveBlockQuadTransform quadTransform) {
+	private QuadCollection process(BlockPos pos, BlockState state, ModelData data, ModelObjectsContainer container, EmissiveBlockQuadTransform quadTransform) {
+		// Seeded from the position and reseeded before every call, the same way the vanilla chunk compiler and block
+		// renderer do it. Weighted and random models pick their variant from this random, so an unseeded one picked a
+		// new variant on every chunk rebuild, and could even pick a different one for each face of the same block.
 		RandomSource random = RandomSource.create();
+		long seed = state.getSeed(pos);
 
+		random.setSeed(seed);
 		ChunkRenderTypeSet baseRenderTypes = originalModel.getRenderTypes(state, random, data);
 		if (baseRenderTypes.isEmpty()) {
 			return null;
@@ -119,6 +124,7 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 				for (int i = 0; i <= DIRECTIONS.length; i++) {
 					Direction cullFace = i == DIRECTIONS.length ? null : DIRECTIONS[i];
 
+					random.setSeed(seed);
 					List<BakedQuad> quads = originalModel.getQuads(state, cullFace, random, data, layer);
 					int amount = quads.size();
 					for (int j = 0; j < amount; j++) {

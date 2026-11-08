@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.10] - 2026-11-08
+
 ### Fixed
 
 - 1.21.1: Blocks with random model variants, such as Alacrity's moss, switching to a different variant whenever a nearby block changed, if they had emissive textures
@@ -103,7 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First release, a port of Continuity 3.0.0 to NeoForge for Minecraft 1.21.1.
 
-[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.9...HEAD
+[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.10...HEAD
+[3.0.10]: https://github.com/aspctt/continuity-neoforge/compare/3.0.9...3.0.10
 [3.0.9]: https://github.com/aspctt/continuity-neoforge/compare/3.0.8...3.0.9
 [3.0.8]: https://github.com/aspctt/continuity-neoforge/compare/3.0.7...3.0.8
 [3.0.7]: https://github.com/aspctt/continuity-neoforge/compare/3.0.6...3.0.7

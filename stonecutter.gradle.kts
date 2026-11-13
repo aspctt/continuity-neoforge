@@ -107,7 +107,9 @@ val releaseVersion: String = providers.gradleProperty("mod_version").get()
 // Uploads only happen with all three tokens set. Missing any one makes the whole run a dry run, which
 // writes what would have been sent under each project's build/publishMods and contacts nothing, so a
 // forgotten token can never leave a release up on some platforms and not others.
-// A provider rather than a value, so only a build that publishes ever reads the tokens.
+// A provider rather than a value, so it is only read when a publish task is created. A provider alone is not
+// enough: anything that creates the root's GitHub task while configuring reads it too, which is why the
+// targets call parent() late, see build.gradle.kts.
 val releaseTokens = listOf("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "GITHUB_TOKEN")
 val isReleaseDryRun: Provider<Boolean> = releaseTokens
     .map { name -> providers.environmentVariable(name).map { it.isBlank() }.orElse(true) }

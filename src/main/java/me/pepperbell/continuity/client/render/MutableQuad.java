@@ -21,7 +21,7 @@ import org.joml.Vector3fc;
 *///?}
 //? if >=26.1 {
 /*import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 *///?}
 
@@ -55,9 +55,9 @@ public class MutableQuad implements MutableQuadView {
 
 	// The layer to bake into, once something that knows the block has resolved what DEFAULT means.
 	@Nullable
-	protected ChunkSectionLayer layer;
+	protected RenderType layer;
 
-	public MutableQuad layer(@Nullable ChunkSectionLayer layer) {
+	public MutableQuad layer(@Nullable RenderType layer) {
 		this.layer = layer;
 		return this;
 	}
@@ -498,12 +498,12 @@ public class MutableQuad implements MutableQuadView {
 			//? if <1.21.2 {
 			return new EmissiveBakedQuad(vertices, colorIndex, lightFace, sprite, shade, hasAmbientOcclusion);
 			//?} else
-			/*return new EmissiveBakedQuad(vertices, colorIndex, lightFace, sprite, shade, lightEmission, hasAmbientOcclusion);*/
+			//return new EmissiveBakedQuad(vertices, colorIndex, lightFace, sprite, shade, lightEmission, hasAmbientOcclusion);
 		}
 		//? if <1.21.2 {
 		return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, hasAmbientOcclusion);
 		//?} else
-		/*return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);*/
+		//return new BakedQuad(vertices, colorIndex, lightFace, sprite, shade, 0, hasAmbientOcclusion);
 		//?}
 	}
 
@@ -512,12 +512,12 @@ public class MutableQuad implements MutableQuadView {
 	// failing both does it fall back to solid. The item render type is carried across untouched, because nothing
 	// here knows enough to work one out.
 	private BakedQuad.MaterialInfo materialInfo(boolean shade, boolean ambientOcclusion) {
-		ChunkSectionLayer bakedLayer = material.blendMode().getLayer();
+		RenderType bakedLayer = material.blendMode().getLayer();
 		if (bakedLayer == null) {
 			bakedLayer = layer;
 		}
 		if (bakedLayer == null) {
-			bakedLayer = sourceMaterialInfo == null ? ChunkSectionLayer.SOLID : sourceMaterialInfo.layer();
+			bakedLayer = sourceMaterialInfo == null ? RenderType.solid() : sourceMaterialInfo.layer();
 		}
 
 		int lightEmission = material.emissive() ? EmissiveQuads.EMISSIVE_LIGHT : 0;

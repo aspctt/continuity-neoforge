@@ -54,7 +54,7 @@ public final class QuadCollector extends AbstractQuadEmitter {
 		//?} else {
 		/*// From 26.1 the layer belongs to the quad, so a quad copied from another keeps the layer it came from
 		// and only a quad with no history at all falls back to the one this collector was prepared with.
-		ChunkSectionLayer resolved = material().blendMode().getLayer();
+		RenderType resolved = material().blendMode().getLayer();
 		if (resolved == null) {
 			resolved = this.layer != null ? this.layer : defaultLayer;
 		}
@@ -96,7 +96,7 @@ public final class QuadCollector extends AbstractQuadEmitter {
 		ChunkRenderTypeSet renderTypes = ChunkRenderTypeSet.of(byLayer.keySet().toArray(RenderType[]::new));
 		QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byLayer), all.clone(), renderTypes);
 		//?} else
-		/*QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byLayer), all.clone());*/
+		//QuadCollection collection = new QuadCollection(new Reference2ReferenceLinkedOpenHashMap<>(byLayer), all.clone());
 		reset();
 		return collection;
 	}

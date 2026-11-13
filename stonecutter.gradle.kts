@@ -71,8 +71,9 @@ stonecutter parameters {
             replace("SpriteSource.SpriteSupplier", "SpriteSource.DiscardableLoader")
             replace("Function<SpriteResourceLoader, SpriteContents>", "SpriteSource.Loader")
 
-            // The mipped and unmipped cutout chunk layers merged into a single mipped one.
-            replace("ChunkSectionLayer.CUTOUT_MIPPED", "ChunkSectionLayer.CUTOUT")
+            // The mipped and unmipped cutout chunk layers merged into a single mipped one at this version too. That
+            // folds two names into one, which Stonecutter cannot undo when it switches back, so the two places
+            // that name the mipped layer carry a directive instead of a replacement here.
 
             // RenderType moved down a package. Only ItemBlockRenderTypesMixin names it, once as a fully
             // qualified type and once inside an injection descriptor; every other file reaches the type through

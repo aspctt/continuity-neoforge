@@ -26,6 +26,6 @@ public final class EmissiveQuads {
 		//?} elif <26.1 {
 		/*return quad.lightEmission() >= EMISSIVE_LIGHT;
 		*///?} else
-		/*return quad.materialInfo().lightEmission() >= EMISSIVE_LIGHT;*/
+		//return quad.materialInfo().lightEmission() >= EMISSIVE_LIGHT;
 	}
 }

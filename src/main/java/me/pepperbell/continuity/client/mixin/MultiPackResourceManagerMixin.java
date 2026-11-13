@@ -29,7 +29,7 @@ import net.minecraft.server.packs.resources.MultiPackResourceManager;
 //? if <1.21.2 {
 abstract class MultiPackResourceManagerMixin implements MultiPackResourceManagerExtension {
 //?} else
-/*abstract class MultiPackResourceManagerMixin {*/
+//abstract class MultiPackResourceManagerMixin {
 	@Unique
 	//? if <1.21.2 {
 	private ResourceRedirectHandler continuity$redirectHandler;
@@ -40,7 +40,7 @@ abstract class MultiPackResourceManagerMixin implements MultiPackResourceManager
 		return continuity$redirectHandler;
 	}
 	//?} else
-	/*private boolean continuity$useRedirects;*/
+	//private boolean continuity$useRedirects;
 
 	@Inject(method = "<init>(Lnet/minecraft/server/packs/PackType;Ljava/util/List;)V", at = @At("TAIL"))
 	private void continuity$onTailInit(PackType type, List<PackResources> packs, CallbackInfo ci) {
@@ -49,7 +49,7 @@ abstract class MultiPackResourceManagerMixin implements MultiPackResourceManager
 			continuity$redirectHandler = new ResourceRedirectHandler();
 		}
 		//?} else
-		/*continuity$useRedirects = type == PackType.CLIENT_RESOURCES;*/
+		//continuity$useRedirects = type == PackType.CLIENT_RESOURCES;
 	}
 
 	@ModifyVariable(method = "getResource(Lnet/minecraft/resources/ResourceLocation;)Ljava/util/Optional;", at = @At("HEAD"), argsOnly = true)

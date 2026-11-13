@@ -39,7 +39,7 @@ abstract class ItemBlockRenderTypesMixin {
 	//? if <1.21.6 {
 	@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/RenderType;", at = @At("HEAD"), cancellable = true)
 	//?} else
-	/*@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;", at = @At("HEAD"), cancellable = true)*/
+	//@Inject(method = "getChunkRenderType(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;", at = @At("HEAD"), cancellable = true)
 	private static void continuity$onHeadGetChunkRenderType(BlockState state, CallbackInfoReturnable<RenderType> cir) {
 		RenderType layer = continuity$getCustomLayer(state);
 		if (layer != null) {

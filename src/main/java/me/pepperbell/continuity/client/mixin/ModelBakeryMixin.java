@@ -17,7 +17,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 //?} else {
 /*import me.pepperbell.continuity.client.model.blockstatemodel.ModelWrappingHandler;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.world.level.block.state.BlockState;
 *///?}

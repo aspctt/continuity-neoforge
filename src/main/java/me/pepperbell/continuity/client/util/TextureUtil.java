@@ -13,7 +13,7 @@ public final class TextureUtil {
 		//? if <26.1 {
 		return new Material(TextureAtlas.LOCATION_BLOCKS, id);
 		//?} else
-		/*return new Material(id);*/
+		//return new Material(id);
 	}
 
 	public static boolean isMissingSprite(TextureAtlasSprite sprite) {

@@ -13,7 +13,7 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 //? if <26.1 {
 import net.minecraft.client.resources.model.AtlasManager;
 //?} else
-/*import net.minecraft.client.resources.model.sprite.AtlasManager;*/
+//import net.minecraft.client.resources.model.sprite.AtlasManager;
 
 /**
  * Starts a Continuity reload and installs the atlas context, from 1.21.11 onwards.

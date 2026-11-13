@@ -28,7 +28,13 @@ public enum BlendMode {
 		return switch (this) {
 			case DEFAULT -> null;
 			case SOLID -> RenderType.solid();
+			// The two cutout layers merged in 1.21.11 into a single mipped one. A directive rather than a
+			// replacement, because a replacement that folds two names into one cannot be undone when Stonecutter
+			// switches back, and would turn every mipped layer into the plain one.
+			//? if <1.21.11 {
 			case CUTOUT_MIPPED -> RenderType.cutoutMipped();
+			//?} else
+			//case CUTOUT_MIPPED -> RenderType.cutout();
 			case CUTOUT -> RenderType.cutout();
 			case TRANSLUCENT -> RenderType.translucent();
 		};
@@ -50,7 +56,7 @@ public enum BlendMode {
 			//? if <1.21.11 {
 			return CUTOUT;
 			//?} else
-			/*return CUTOUT_MIPPED; // The two cutout layers merged, and what is left behaves like the mipped one.*/
+			//return CUTOUT_MIPPED; // The two cutout layers merged, and what is left behaves like the mipped one.
 		}
 		if (layer == RenderType.translucent()) {
 			return TRANSLUCENT;

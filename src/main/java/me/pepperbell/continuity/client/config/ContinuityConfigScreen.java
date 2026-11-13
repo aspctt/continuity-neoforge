@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 //? if <26.1 {
 import net.minecraft.client.gui.GuiGraphics;
 //?} else
-/*import net.minecraft.client.gui.GuiGraphicsExtractor;*/
+//import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.Button;
@@ -87,7 +87,7 @@ public class ContinuityConfigScreen extends Screen {
 		//? if <26.2 {
 		minecraft.setScreen(parent);
 		//?} else
-		/*minecraft.setScreenAndShow(parent);*/
+		//minecraft.setScreenAndShow(parent);
 	}
 
 	private void saveValues() {

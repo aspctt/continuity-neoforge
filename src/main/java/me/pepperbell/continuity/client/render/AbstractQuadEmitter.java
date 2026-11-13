@@ -107,7 +107,7 @@ public abstract class AbstractQuadEmitter extends MutableQuad implements QuadEmi
 			//? if <1.21.11 {
 			pos(i, shape[vertexInfo.xFace], shape[vertexInfo.yFace], shape[vertexInfo.zFace]);
 			//?} else
-			/*pos(i, shape[vertexInfo.xFace().ordinal()], shape[vertexInfo.yFace().ordinal()], shape[vertexInfo.zFace().ordinal()]);*/
+			//pos(i, shape[vertexInfo.xFace().ordinal()], shape[vertexInfo.yFace().ordinal()], shape[vertexInfo.zFace().ordinal()]);
 		}
 
 		return this;

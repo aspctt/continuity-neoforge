@@ -36,7 +36,7 @@ public final class PropertiesParsingHelper {
 	//? if <1.21.2 {
 	public static Set<ResourceLocation> parseMatchTiles(Properties properties, String propertyKey, ResourceLocation fileLocation, String packId, @Nullable ResourceRedirectHandler redirectHandler) {
 	//?} else
-	/*public static Set<ResourceLocation> parseMatchTiles(Properties properties, String propertyKey, ResourceLocation fileLocation, String packId) {*/
+	//public static Set<ResourceLocation> parseMatchTiles(Properties properties, String propertyKey, ResourceLocation fileLocation, String packId) {
 		String matchTilesStr = properties.getProperty(propertyKey);
 		if (matchTilesStr == null) {
 			return null;
@@ -90,7 +90,7 @@ public final class PropertiesParsingHelper {
 						}
 						path = redirectHandler.getSourceSpritePath(path + ".png");
 						//?} else
-						/*path = ResourceRedirectHandler.SPRITE_PATH_START + path.substring(9);*/
+						//path = ResourceRedirectHandler.SPRITE_PATH_START + path.substring(9);
 						if (namespace == null) {
 							namespace = fileLocation.getNamespace();
 						}
@@ -251,7 +251,7 @@ public final class PropertiesParsingHelper {
 								Comparable<?> targetValue = state.getValues().get(entry.getKey());
 								// 26.1 hands the values back as a stream, so each property is read on its own.
 								//?} else
-								/*Comparable<?> targetValue = state.getOptionalValue(entry.getKey()).orElse(null);*/
+								//Comparable<?> targetValue = state.getOptionalValue(entry.getKey()).orElse(null);
 								if (targetValue != null) {
 									if (!entry.getValue().contains(targetValue)) {
 										return false;

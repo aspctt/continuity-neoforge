@@ -27,7 +27,7 @@ import net.neoforged.bus.api.IEventBus;
 //? if <1.21.4 {
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 //?} else
-/*import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;*/
+//import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 
 public final class CustomBlockLayers {
 	public static final ResourceLocation LOCATION = ResourceLocation.withDefaultNamespace("optifine/block.properties");
@@ -52,7 +52,7 @@ public final class CustomBlockLayers {
 			//? if <1.21.2 {
 			if (state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) {
 			//?} else
-			/*if (state.isSolidRender()) {*/
+			//if (state.isSolidRender()) {
 				return null;
 			}
 		}
@@ -110,7 +110,7 @@ public final class CustomBlockLayers {
 			//? if <1.21.4 {
 			modBus.addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(INSTANCE));
 			//?} else
-			/*modBus.addListener(AddClientReloadListenersEvent.class, event -> event.addListener(ID, INSTANCE));*/
+			//modBus.addListener(AddClientReloadListenersEvent.class, event -> event.addListener(ID, INSTANCE));
 		}
 
 		@Override
@@ -119,9 +119,9 @@ public final class CustomBlockLayers {
 		//?} elif <1.21.9 {
 		/*public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
 		*///?} else
-		/*public CompletableFuture<Void> reload(SharedState sharedState, Executor backgroundExecutor, PreparationBarrier barrier, Executor gameExecutor) {*/
+		//public CompletableFuture<Void> reload(SharedState sharedState, Executor backgroundExecutor, PreparationBarrier barrier, Executor gameExecutor) {
 			//? if >=1.21.9
-			/*ResourceManager manager = sharedState.resourceManager();*/
+			//ResourceManager manager = sharedState.resourceManager();
 			return CompletableFuture.supplyAsync(() -> manager, backgroundExecutor)
 					.thenCompose(barrier::wait)
 					.thenAcceptAsync(CustomBlockLayers::reload, gameExecutor);
@@ -136,7 +136,11 @@ public final class CustomBlockLayers {
 	private enum BlockLayer {
 		SOLID(RenderType.solid()),
 		CUTOUT(RenderType.cutout()),
+		// 1.21.11 merged the two cutout layers into one, see BlendMode.getLayer for why this is a directive
+		//? if <1.21.11 {
 		CUTOUT_MIPPED(RenderType.cutoutMipped()),
+		//?} else
+		//CUTOUT_MIPPED(RenderType.cutout()),
 		TRANSLUCENT(RenderType.translucent());
 
 		public static final BlockLayer[] VALUES = values();

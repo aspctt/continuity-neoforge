@@ -22,7 +22,7 @@ import net.minecraft.client.resources.model.BakedModel;
 //? if <1.21.2 {
 import net.minecraft.client.resources.model.ModelBakery;
 //?} else
-/*import net.minecraft.client.resources.model.MissingBlockModel;*/
+//import net.minecraft.client.resources.model.MissingBlockModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -82,7 +82,7 @@ public class ModelWrappingHandler {
 		//?} elif <1.21.4 {
 		/*if (model == null || isCustomRenderer(model) || MissingBlockModel.VARIANT.equals(topLevelId)) {
 		*///?} else
-		/*if (model == null || MissingBlockModel.VARIANT.equals(topLevelId)) {*/
+		//if (model == null || MissingBlockModel.VARIANT.equals(topLevelId)) {
 			return model;
 		}
 

@@ -41,6 +41,6 @@ abstract class ModelBlockRendererMixin {
 		//? if <1.21.11 {
 		original.call(consumer, pose, quad, brightness, red, green, blue, alpha, lightmap, packedOverlay, readExistingColor);
 		//?} else
-		/*original.call(consumer, pose, quad, brightness, red, green, blue, alpha, lightmap, packedOverlay);*/
+		//original.call(consumer, pose, quad, brightness, red, green, blue, alpha, lightmap, packedOverlay);
 	}
 }

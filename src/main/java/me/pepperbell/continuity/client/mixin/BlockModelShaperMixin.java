@@ -9,12 +9,12 @@ import me.pepperbell.continuity.client.util.SpriteCalculator;
 //? if <26.1 {
 import net.minecraft.client.renderer.block.BlockModelShaper;
 //?} else
-/*import net.minecraft.client.renderer.block.BlockStateModelSet;*/
+//import net.minecraft.client.renderer.block.BlockStateModelSet;
 
 //? if <26.1 {
 @Mixin(BlockModelShaper.class)
 //?} else
-/*@Mixin(BlockStateModelSet.class)*/
+//@Mixin(BlockStateModelSet.class)
 abstract class BlockModelShaperMixin {
 	//? if <26.1 {
 	@Inject(method = "replaceCache(Ljava/util/Map;)V", at = @At("HEAD"))

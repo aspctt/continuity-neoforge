@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.TriState;
+import net.neoforged.neoforge.common.util.TriState;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -127,7 +127,7 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 					//? if <26.1 {
 					BlendMode blendMode = BlendMode.fromLayer(layer);
 					//?} else
-					/*BlendMode blendMode = BlendMode.fromLayer(quads.get(j).materialInfo().layer());*/
+					//BlendMode blendMode = BlendMode.fromLayer(quads.get(j).materialInfo().layer());
 					RenderMaterial emissiveMaterial;
 					if (blendMode == BlendMode.DEFAULT || blendMode == BlendMode.SOLID) {
 						emissiveMaterial = CUTOUT_MIPPED_EMISSIVE_MATERIAL;

@@ -43,24 +43,24 @@ public final class SpriteCalculator {
 		//?} elif <26.1 {
 		/*net.minecraft.client.renderer.block.model.BlockStateModel model = MODELS.getBlockModel(state);
 		*///?} else
-		/*net.minecraft.client.renderer.block.dispatch.BlockStateModel model = models().get(state);*/
+		//net.minecraft.client.renderer.block.dispatch.BlockStateModel model = models().get(state);
 		try {
 			//? if <1.21.5 {
 			List<BakedQuad> quads = model.getQuads(state, face, randomSupplier.get());
 			//?} else
-			/*List<BakedQuad> quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), face);*/
+			//List<BakedQuad> quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), face);
 			if (!quads.isEmpty()) {
 				//? if <1.21.5 {
 				return quads.get(0).getSprite();
 				//?} elif <26.1 {
 				/*return quads.get(0).sprite();
 				*///?} else
-				/*return quads.get(0).materialInfo().sprite();*/
+				//return quads.get(0).materialInfo().sprite();
 			}
 			//? if <1.21.5 {
 			quads = model.getQuads(state, null, randomSupplier.get());
 			//?} else
-			/*quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), null);*/
+			//quads = me.pepperbell.continuity.client.model.blockstatemodel.PartQuads.collect(model, randomSupplier.get(), null);
 			if (!quads.isEmpty()) {
 				int amount = quads.size();
 				for (int i = 0; i < amount; i++) {
@@ -86,7 +86,7 @@ public final class SpriteCalculator {
 		//?} elif <26.1 {
 		/*return model.particleIcon();
 		*///?} else
-		/*return model.particleMaterial().sprite();*/
+		//return model.particleMaterial().sprite();
 	}
 
 	public static void clearCache() {

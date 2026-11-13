@@ -126,7 +126,7 @@ public class CtmBakedModel extends ForwardingBakedModel {
 						//? if <1.21.2 {
 						if (!Block.shouldRenderFace(state, level, pos, cullFace, neighborPos)) {
 						//?} else
-						/*if (!Block.shouldRenderFace(level, pos, state, level.getBlockState(neighborPos), cullFace)) {*/
+						//if (!Block.shouldRenderFace(level, pos, state, level.getBlockState(neighborPos), cullFace)) {
 							continue;
 						}
 					}

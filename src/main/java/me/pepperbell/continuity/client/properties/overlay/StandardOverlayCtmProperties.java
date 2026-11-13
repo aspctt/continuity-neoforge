@@ -43,7 +43,7 @@ public class StandardOverlayCtmProperties extends BasicConnectingCtmProperties i
 		//? if <1.21.2 {
 		connectTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "connectTiles", resourceId, packId, ResourceRedirectHandler.get(resourceManager));
 		//?} else
-		/*connectTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "connectTiles", resourceId, packId);*/
+		//connectTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "connectTiles", resourceId, packId);
 	}
 
 	protected void parseConnectBlocks() {

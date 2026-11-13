@@ -139,7 +139,7 @@ public class BaseCtmProperties implements CtmProperties {
 		//? if <1.21.2 {
 		matchTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "matchTiles", resourceId, packId, ResourceRedirectHandler.get(resourceManager));
 		//?} else
-		/*matchTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "matchTiles", resourceId, packId);*/
+		//matchTilesSet = PropertiesParsingHelper.parseMatchTiles(properties, "matchTiles", resourceId, packId);
 		if (matchTilesSet != null && matchTilesSet.isEmpty()) {
 			valid = false;
 		}
@@ -612,7 +612,7 @@ public class BaseCtmProperties implements CtmProperties {
 						//? if <26.3 {
 						if (optionalResource.isPresent() && optionalResource.get().source() != defaultPack) {
 						//?} else
-						/*if (optionalResource.isPresent() && !optionalResource.get().sourcePackId().equals(defaultPackId)) {*/
+						//if (optionalResource.isPresent() && !optionalResource.get().sourcePackId().equals(defaultPackId)) {
 							valid = false;
 							break;
 						}

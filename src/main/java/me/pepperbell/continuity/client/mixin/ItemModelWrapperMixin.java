@@ -27,19 +27,19 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 //? if <26.1 {
 import net.minecraft.client.renderer.item.BlockModelWrapper;
 //?} else
-/*import net.minecraft.client.renderer.item.CuboidItemModelWrapper;*/
+//import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 //? if >=26.3
-/*import net.minecraft.client.resources.model.geometry.ItemQuads;*/
+//import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.TriState;
 //? if <1.21.9 {
 import net.minecraft.world.entity.LivingEntity;
 //?} else
-/*import net.minecraft.world.entity.ItemOwner;*/
+//import net.minecraft.world.entity.ItemOwner;
 
 /**
  * Draws the emissive counterpart of an item texture on top of the item, from 1.21.5 onwards.
@@ -51,7 +51,7 @@ import net.minecraft.world.entity.LivingEntity;
 //? if <26.1 {
 @Mixin(BlockModelWrapper.class)
 //?} else
-/*@Mixin(CuboidItemModelWrapper.class)*/
+//@Mixin(CuboidItemModelWrapper.class)
 abstract class ItemModelWrapperMixin {
 	@Unique
 	private static final RenderMaterial CONTINUITY$EMISSIVE_MATERIAL = MaterialFinder.find(BlendMode.DEFAULT, true, true, TriState.FALSE);
@@ -109,7 +109,7 @@ abstract class ItemModelWrapperMixin {
 		//? if <26.3 {
 		layer.prepareQuadList().addAll(emissiveQuads);
 		//?} else
-		/*layer.setQuads(continuity$quadsWithEmissive);*/
+		//layer.setQuads(continuity$quadsWithEmissive);
 		//? if >=1.21.6 {
 		/*renderState.appendModelIdentityElement(CONTINUITY$EMISSIVE_MARKER);
 		if (continuity$emissiveAnimated) {
@@ -138,7 +138,7 @@ abstract class ItemModelWrapperMixin {
 		//?} elif <26.3 {
 		/*List<BakedQuad> sourceQuads = quads.getAll();
 		*///?} else
-		/*List<BakedQuad> sourceQuads = itemQuads.all();*/
+		//List<BakedQuad> sourceQuads = itemQuads.all();
 		int amount = sourceQuads.size();
 		for (int i = 0; i < amount; i++) {
 			BakedQuad quad = sourceQuads.get(i);

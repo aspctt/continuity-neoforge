@@ -32,7 +32,7 @@ public final class RenderUtil {
 		//? if <26.1 {
 		return 0xFF000000 | getBlockColors().getColor(state, blockView, pos, tintIndex);
 		//?} else
-		/*return 0xFF000000 | getBlockColors().getTintSource(state, tintIndex).colorInWorld(state, blockView, pos);*/
+		//return 0xFF000000 | getBlockColors().getTintSource(state, tintIndex).colorInWorld(state, blockView, pos);
 	}
 
 	public static RenderMaterial findOverlayMaterial(BlendMode blendMode, @Nullable BlockState tintBlock) {

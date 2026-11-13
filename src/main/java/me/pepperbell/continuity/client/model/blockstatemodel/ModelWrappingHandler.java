@@ -36,7 +36,7 @@ public class ModelWrappingHandler {
 	//? if <26.1 {
 	private static final BlockAndTintGetter EMPTY_LEVEL = EmptyBlockAndTintGetter.INSTANCE;
 	//?} else
-	/*private static final BlockAndTintGetter EMPTY_LEVEL = BlockAndTintGetter.EMPTY;*/
+	//private static final BlockAndTintGetter EMPTY_LEVEL = BlockAndTintGetter.EMPTY;
 
 	private final boolean wrapCtm;
 	private final boolean wrapEmissive;

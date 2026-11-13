@@ -15,7 +15,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 //? if <1.21.5 {
 import me.pepperbell.continuity.client.model.bakedmodel.ModelWrappingHandler;
 //?} else
-/*import me.pepperbell.continuity.client.model.blockstatemodel.ModelWrappingHandler;*/
+//import me.pepperbell.continuity.client.model.blockstatemodel.ModelWrappingHandler;
 import me.pepperbell.continuity.client.ContinuityClient;
 import me.pepperbell.continuity.client.model.QuadProcessors;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -195,7 +195,7 @@ public class ModelReloadHandler {
 			//?} elif <1.21.5 {
 			/*wrappingHandler.wrapAll(event.getBakingResult().blockStateModels());
 			*///?} else
-			/*wrappingHandler.wrapAll(event.getBakingResult().blockStateModels());*/
+			//wrappingHandler.wrapAll(event.getBakingResult().blockStateModels());
 		}
 	}
 

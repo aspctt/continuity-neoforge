@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.TriState;
+import net.neoforged.neoforge.common.util.TriState;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -145,7 +145,7 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 								//? if <26.1 {
 								collector.acceptVanilla(quad, cullFace, part.getRenderType(state));
 								//?} else
-								/*collector.acceptVanilla(quad, cullFace, quad.materialInfo().layer());*/
+								//collector.acceptVanilla(quad, cullFace, quad.materialInfo().layer());
 							}
 						} else {
 							processedAnything = true;
@@ -158,7 +158,7 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 			collector.prepare(ItemBlockRenderTypes.getChunkRenderType(state));
 			// Overlay quads carry the layer of whatever they were copied from, so there is nothing to prepare.
 			//?} else
-			/*collector.prepare(ChunkSectionLayer.SOLID);*/
+			//collector.prepare(RenderType.solid());
 			quadTransform.processingContext.outputTo(collector);
 			processedAnything |= quadTransform.processingContext.producedQuads();
 		} finally {

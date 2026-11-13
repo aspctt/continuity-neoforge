@@ -43,9 +43,9 @@ abstract class ModelManagerMixin {
 	//?} elif <1.21.9 {
 	/*private void continuity$onHeadReload(PreparableReloadListener.PreparationBarrier preparationBarrier, ResourceManager resourceManager, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
 	*///?} else
-	/*private void continuity$onHeadReload(PreparableReloadListener.SharedState sharedState, Executor backgroundExecutor, PreparableReloadListener.PreparationBarrier preparationBarrier, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {*/
+	//private void continuity$onHeadReload(PreparableReloadListener.SharedState sharedState, Executor backgroundExecutor, PreparableReloadListener.PreparationBarrier preparationBarrier, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
 		//? if >=1.21.9
-		/*ResourceManager resourceManager = sharedState.resourceManager();*/
+		//ResourceManager resourceManager = sharedState.resourceManager();
 		//? if <1.21.11 {
 		ModelReloadHandler.beginReload(resourceManager, backgroundExecutor).setContext();
 		//?} else {
@@ -92,7 +92,7 @@ abstract class ModelManagerMixin {
 	*///?} elif <1.21.11 {
 	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true) SpriteLoader.Preparations preparations) {
 	*///?} else
-	/*private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true, ordinal = 0) SpriteLoader.Preparations preparations, @Local(argsOnly = true, ordinal = 1) SpriteLoader.Preparations itemPreparations) {*/
+	//private static void continuity$onHeadLoadModels(CallbackInfoReturnable<?> cir, @Local(argsOnly = true, ordinal = 0) SpriteLoader.Preparations preparations, @Local(argsOnly = true, ordinal = 1) SpriteLoader.Preparations itemPreparations) {
 		ModelReloadHandler handler = ModelReloadHandler.getCurrent();
 		if (handler == null) {
 			return;
@@ -152,7 +152,7 @@ abstract class ModelManagerMixin {
 			//? if <1.21.9 {
 			TextureAtlasSprite missingSprite = stitchResults.get(TextureAtlas.LOCATION_BLOCKS).missing();
 			//?} else
-			/*TextureAtlasSprite missingSprite = preparations.missing();*/
+			//TextureAtlasSprite missingSprite = preparations.missing();
 			handler.prepareOnDemandWrapping(material -> missingSprite);
 		}
 	}

@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.chunk.RenderChunkRegion;
 //? if <26.1 {
 import net.minecraft.world.level.Level;
 //?} else
-/*import net.minecraft.client.multiplayer.ClientLevel;*/
+//import net.minecraft.client.multiplayer.ClientLevel;
 
 @Mixin(RenderChunkRegion.class)
 public interface RenderRegionAccessor {

@@ -203,13 +203,16 @@ GitHub release for the version with the main jars attached, using
 time, from the oldest Minecraft version to the newest. The notes come from the version's section of
 `CHANGELOG.md`, and the portals list each jar for the Minecraft versions in `release_minecraft_versions`.
 
-It needs three tokens in the environment: `MODRINTH_TOKEN`, a Modrinth personal access token that can create,
-read and write versions; `CURSEFORGE_TOKEN`, a CurseForge API token; and `GITHUB_TOKEN`, which can write the
-repository's contents. With any of them missing the run is a dry run, which uploads nothing and writes what it
-would have sent under each project's `build/publishMods`.
+Releases normally go out through the Release workflow in the Actions tab, started by hand with Run workflow.
+Push the version's tag first: the workflow refuses to run unless the tag exists and marks the commit it is
+building. Ticking "dry run" shows what would be uploaded without sending anything. It reads `MODRINTH_TOKEN`, a
+Modrinth personal access token that can create, read and write versions, and `CURSEFORGE_TOKEN`, a CurseForge
+API token, from the repository's Actions secrets, and uses the workflow's own token for GitHub.
 
-Push the version's tag before publishing, so the release is made on it rather than on a tag GitHub creates at
-the tip of `main`.
+To publish from a local machine instead, set those two tokens and a `GITHUB_TOKEN` that can write the
+repository's contents as environment variables, then run `./gradlew publishMods`. With any of the three
+missing the run is a dry run, which uploads nothing and writes what it would have sent under each project's
+`build/publishMods`.
 
 ## Installation
 

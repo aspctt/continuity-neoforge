@@ -195,6 +195,22 @@ emission argument in 1.21.2, and several methods the mixins target changed signa
 signature that will not survive. Minecraft also relaxed sprite path validation in 1.21.2, which let the
 reserved-path machinery collapse from an index table and three supporting mixins down to a single rewrite.
 
+### Releasing
+
+`./gradlew publishMods` uploads every target with its sources jar to Modrinth and CurseForge, and creates one
+GitHub release for the version with the main jars attached, using
+[mod-publish-plugin](https://modmuss50.github.io/mod-publish-plugin/). Each platform gets the targets one at a
+time, from the oldest Minecraft version to the newest. The notes come from the version's section of
+`CHANGELOG.md`, and the portals list each jar for the Minecraft versions in `release_minecraft_versions`.
+
+It needs three tokens in the environment: `MODRINTH_TOKEN`, a Modrinth personal access token that can create,
+read and write versions; `CURSEFORGE_TOKEN`, a CurseForge API token; and `GITHUB_TOKEN`, which can write the
+repository's contents. With any of them missing the run is a dry run, which uploads nothing and writes what it
+would have sent under each project's `build/publishMods`.
+
+Push the version's tag before publishing, so the release is made on it rather than on a tag GitHub creates at
+the tip of `main`.
+
 ## Installation
 
 Place the JAR in your `mods` folder. There are no dependencies.

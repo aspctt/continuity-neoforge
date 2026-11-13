@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.11] - 2026-11-13
+
 ### Fixed
 
 - 1.21.1: Minecraft's check for invalid resource file names staying off on one loading thread after Continuity read the resource packs
@@ -109,7 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First release, a port of Continuity 3.0.0 to NeoForge for Minecraft 1.21.1.
 
-[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.10...HEAD
+[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.11...HEAD
+[3.0.11]: https://github.com/aspctt/continuity-neoforge/compare/3.0.10...3.0.11
 [3.0.10]: https://github.com/aspctt/continuity-neoforge/compare/3.0.9...3.0.10
 [3.0.9]: https://github.com/aspctt/continuity-neoforge/compare/3.0.8...3.0.9
 [3.0.8]: https://github.com/aspctt/continuity-neoforge/compare/3.0.7...3.0.8

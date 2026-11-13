@@ -1,3 +1,5 @@
+import me.modmuss50.mpp.PublishModTask
+
 plugins {
     id("dev.kikugie.stonecutter")
     // Versioned here and applied bare in build.gradle.kts, so every subproject shares this one copy of the
@@ -104,8 +106,19 @@ val releaseVersion: String = providers.gradleProperty("mod_version").get()
 // Uploads only happen with all three tokens set. Missing any one makes the whole run a dry run, which
 // writes what would have been sent under each project's build/publishMods and contacts nothing, so a
 // forgotten token can never leave a release up on some platforms and not others.
+// A provider rather than a value, so only a build that publishes ever reads the tokens.
 val releaseTokens = listOf("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "GITHUB_TOKEN")
-val isReleaseDryRun = releaseTokens.any { providers.environmentVariable(it).orNull.isNullOrBlank() }
+val isReleaseDryRun: Provider<Boolean> = releaseTokens
+    .map { name -> providers.environmentVariable(name).map { it.isBlank() }.orElse(true) }
+    .reduce { isMissing, isOtherMissing -> isMissing.zip(isOtherMissing) { first, second -> first || second } }
+
+// The configuration cache would store the tokens the publish tasks read, encrypted, under .gradle in this
+// folder. A build that publishes skips the cache instead, so the tokens are never written to disk.
+allprojects {
+    tasks.withType<PublishModTask>().configureEach {
+        notCompatibleWithConfigurationCache("Keeps the publishing tokens out of the configuration cache.")
+    }
+}
 
 // A link reference at the foot of CHANGELOG.md, such as "[3.0.10]: https://...", which ends the last section
 val changelogLinkReference = Regex("""^\[[^\]]+]: .*""")

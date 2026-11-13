@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 1.21.1: Minecraft's check for invalid resource file names staying off on one loading thread after Continuity read the resource packs
+
 ## [3.0.10] - 2026-11-08
 
 ### Fixed

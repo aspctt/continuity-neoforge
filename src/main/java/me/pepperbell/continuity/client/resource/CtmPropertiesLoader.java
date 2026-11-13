@@ -68,7 +68,7 @@ public class CtmPropertiesLoader {
 			packPriority++;
 		}
 		//? if <1.21.2
-		/*invalidIdentifierState.disable();*/
+		invalidIdentifierState.disable();
 
 		containers.sort(Comparator.reverseOrder());
 

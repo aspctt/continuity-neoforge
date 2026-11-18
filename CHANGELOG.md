@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 26.1: A crash when EvilCraft's Dark Tank was shown as an item, such as in the hotbar or creative inventory, with ModernFix's dynamic resources on
+
 ## [3.0.11] - 2026-11-13
 
 ### Fixed

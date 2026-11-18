@@ -58,6 +58,14 @@ public class EmissiveBlockStateModel extends ForwardingBlockStateModel {
 
 	@Override
 	public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockModelPart> parts) {
+		// An item drawn through its block's model, such as EvilCraft's Dark Tank, asks for the parts with no block
+		// state. Before 26.1 the layer of each part comes from that state, so there is nothing to put the emissive copy
+		// on, and the parts are passed through unchanged.
+		if (state == null) {
+			super.collectParts(level, pos, state, random, parts);
+			return;
+		}
+
 		if (!ContinuityConfig.INSTANCE.emissiveTextures.get()) {
 			super.collectParts(level, pos, state, random, parts);
 			return;

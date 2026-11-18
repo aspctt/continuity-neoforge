@@ -55,6 +55,14 @@ public class CtmBlockStateModel extends ForwardingBlockStateModel {
 
 	@Override
 	public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockModelPart> parts) {
+		// Some mods draw an item through its block's model and ask for the parts with no block, level or position
+		// behind them, as EvilCraft does for its Dark Tank. With no block in a world there is nothing to connect to, so
+		// the parts are passed through unchanged instead of failing on the missing state.
+		if (state == null || level == null || pos == null) {
+			super.collectParts(level, pos, state, random, parts);
+			return;
+		}
+
 		if (!ContinuityConfig.INSTANCE.connectedTextures.get()) {
 			super.collectParts(level, pos, state, random, parts);
 			return;

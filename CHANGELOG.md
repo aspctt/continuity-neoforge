@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.12] - 2026-11-18
+
 ### Fixed
 
 - 26.1: A crash when EvilCraft's Dark Tank was shown as an item, such as in the hotbar or creative inventory, with ModernFix's dynamic resources on
@@ -115,7 +117,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First release, a port of Continuity 3.0.0 to NeoForge for Minecraft 1.21.1.
 
-[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.11...HEAD
+[Unreleased]: https://github.com/aspctt/continuity-neoforge/compare/3.0.12...HEAD
+[3.0.12]: https://github.com/aspctt/continuity-neoforge/compare/3.0.11...3.0.12
 [3.0.11]: https://github.com/aspctt/continuity-neoforge/compare/3.0.10...3.0.11
 [3.0.10]: https://github.com/aspctt/continuity-neoforge/compare/3.0.9...3.0.10
 [3.0.9]: https://github.com/aspctt/continuity-neoforge/compare/3.0.8...3.0.9

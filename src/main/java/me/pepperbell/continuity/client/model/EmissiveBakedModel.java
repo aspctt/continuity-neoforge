@@ -188,6 +188,28 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 			return quads;
 		}
 
+		EmissiveSpriteApi emissiveSpriteApi = EmissiveSpriteApi.get();
+		int amount = quads.size();
+		int firstEmissiveIndex = -1;
+		TextureAtlasSprite firstSprite = null;
+		TextureAtlasSprite firstEmissiveSprite = null;
+		for (int i = 0; i < amount; i++) {
+			TextureAtlasSprite sprite = quads.get(i).getSprite();
+			if (sprite == null) {
+				continue;
+			}
+			TextureAtlasSprite emissiveSprite = emissiveSpriteApi.getEmissiveSprite(sprite);
+			if (emissiveSprite != null) {
+				firstEmissiveIndex = i;
+				firstSprite = sprite;
+				firstEmissiveSprite = emissiveSprite;
+				break;
+			}
+		}
+		if (firstEmissiveIndex < 0) {
+			return quads;
+		}
+
 		ModelObjectsContainer container = ModelObjectsContainer.get();
 		if (!container.featureStates.getEmissiveTexturesState().isEnabled()) {
 			return quads;
@@ -198,14 +220,16 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 			return quads;
 		}
 
-		EmissiveSpriteApi emissiveSpriteApi = EmissiveSpriteApi.get();
 		MutableQuad workingQuad = container.emissiveWorkingQuad;
-		List<BakedQuad> emissiveQuads = null;
+		List<BakedQuad> emissiveQuads = new ObjectArrayList<>(amount + (amount - firstEmissiveIndex));
+		emissiveQuads.addAll(quads);
 
 		quadTransform.prepare();
 		try {
-			int amount = quads.size();
-			for (int i = 0; i < amount; i++) {
+			workingQuad.fromVanilla(quads.get(firstEmissiveIndex), side);
+			emissiveQuads.add(quadTransform.transform(workingQuad, firstSprite, firstEmissiveSprite));
+
+			for (int i = firstEmissiveIndex + 1; i < amount; i++) {
 				BakedQuad quad = quads.get(i);
 				TextureAtlasSprite sprite = quad.getSprite();
 				if (sprite == null) {
@@ -217,18 +241,13 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 				}
 
 				workingQuad.fromVanilla(quad, side);
-				BakedQuad emissiveQuad = quadTransform.transform(workingQuad, sprite, emissiveSprite);
-				if (emissiveQuads == null) {
-					emissiveQuads = new ObjectArrayList<>(amount + (amount - i));
-					emissiveQuads.addAll(quads);
-				}
-				emissiveQuads.add(emissiveQuad);
+				emissiveQuads.add(quadTransform.transform(workingQuad, sprite, emissiveSprite));
 			}
 		} finally {
 			quadTransform.reset();
 		}
 
-		return emissiveQuads == null ? quads : emissiveQuads;
+		return emissiveQuads;
 	}
 
 	@Nullable

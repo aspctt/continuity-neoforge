@@ -113,6 +113,7 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 
 		QuadCollector collector = container.emissiveQuadCollector;
 		MutableQuad workingQuad = container.emissiveWorkingQuad;
+		EmissiveSpriteApi emissiveSpriteApi = EmissiveSpriteApi.get();
 		collector.reset();
 
 		quadTransform.prepare(collector, state);
@@ -131,8 +132,17 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 						BakedQuad quad = quads.get(j);
 						collector.acceptVanilla(quad, cullFace, layer);
 
+						TextureAtlasSprite sprite = quad.getSprite();
+						if (sprite == null) {
+							continue;
+						}
+						TextureAtlasSprite emissiveSprite = emissiveSpriteApi.getEmissiveSprite(sprite);
+						if (emissiveSprite == null) {
+							continue;
+						}
+
 						workingQuad.fromVanilla(quad, cullFace);
-						quadTransform.transform(workingQuad, layer);
+						quadTransform.transform(workingQuad, layer, sprite, emissiveSprite);
 					}
 				}
 			}
@@ -167,14 +177,36 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 	}
 
 	/**
-	 * Item rendering has no model data to hang results on, so the emissive copies are appended here instead. Items are
-	 * drawn one at a time rather than batched into a chunk, so the cost of doing it per call is acceptable.
+	 * Item rendering has no model data to hang results on, so the emissive copies are appended here instead. Quads
+	 * without an emissive part exit before any vertex data is copied.
 	 */
 	@Override
 	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
 		List<BakedQuad> quads = super.getQuads(state, side, rand);
 
 		if (state != null || quads.isEmpty() || !ContinuityConfig.INSTANCE.emissiveTextures.get()) {
+			return quads;
+		}
+
+		EmissiveSpriteApi emissiveSpriteApi = EmissiveSpriteApi.get();
+		int amount = quads.size();
+		int firstEmissiveIndex = -1;
+		TextureAtlasSprite firstSprite = null;
+		TextureAtlasSprite firstEmissiveSprite = null;
+		for (int i = 0; i < amount; i++) {
+			TextureAtlasSprite sprite = quads.get(i).getSprite();
+			if (sprite == null) {
+				continue;
+			}
+			TextureAtlasSprite emissiveSprite = emissiveSpriteApi.getEmissiveSprite(sprite);
+			if (emissiveSprite != null) {
+				firstEmissiveIndex = i;
+				firstSprite = sprite;
+				firstEmissiveSprite = emissiveSprite;
+				break;
+			}
+		}
+		if (firstEmissiveIndex < 0) {
 			return quads;
 		}
 
@@ -189,27 +221,33 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 		}
 
 		MutableQuad workingQuad = container.emissiveWorkingQuad;
-		List<BakedQuad> emissiveQuads = null;
+		List<BakedQuad> emissiveQuads = new ObjectArrayList<>(amount + (amount - firstEmissiveIndex));
+		emissiveQuads.addAll(quads);
 
 		quadTransform.prepare();
 		try {
-			int amount = quads.size();
-			for (int i = 0; i < amount; i++) {
+			workingQuad.fromVanilla(quads.get(firstEmissiveIndex), side);
+			emissiveQuads.add(quadTransform.transform(workingQuad, firstSprite, firstEmissiveSprite));
+
+			for (int i = firstEmissiveIndex + 1; i < amount; i++) {
 				BakedQuad quad = quads.get(i);
-				workingQuad.fromVanilla(quad, side);
-				BakedQuad emissiveQuad = quadTransform.transform(workingQuad);
-				if (emissiveQuad != null) {
-					if (emissiveQuads == null) {
-						emissiveQuads = new ObjectArrayList<>(quads);
-					}
-					emissiveQuads.add(emissiveQuad);
+				TextureAtlasSprite sprite = quad.getSprite();
+				if (sprite == null) {
+					continue;
 				}
+				TextureAtlasSprite emissiveSprite = emissiveSpriteApi.getEmissiveSprite(sprite);
+				if (emissiveSprite == null) {
+					continue;
+				}
+
+				workingQuad.fromVanilla(quad, side);
+				emissiveQuads.add(quadTransform.transform(workingQuad, sprite, emissiveSprite));
 			}
 		} finally {
 			quadTransform.reset();
 		}
 
-		return emissiveQuads == null ? quads : emissiveQuads;
+		return emissiveQuads;
 	}
 
 	@Nullable
@@ -239,7 +277,10 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 			if (emissiveSprite == null) {
 				return;
 			}
+			transform(quad, layer, sprite, emissiveSprite);
+		}
 
+		public void transform(MutableQuad quad, RenderType layer, TextureAtlasSprite sprite, TextureAtlasSprite emissiveSprite) {
 			// An emissive layer drawn over a solid one has to be at least cutout, or the alpha in the emissive
 			// texture is ignored and the whole face lights up.
 			BlendMode blendMode = BlendMode.fromLayer(layer);
@@ -310,6 +351,10 @@ public class EmissiveBakedModel extends ForwardingBakedModel {
 				return null;
 			}
 
+			return transform(quad, sprite, emissiveSprite);
+		}
+
+		public BakedQuad transform(MutableQuad quad, TextureAtlasSprite sprite, TextureAtlasSprite emissiveSprite) {
 			quad.material(DEFAULT_EMISSIVE_MATERIAL);
 			QuadUtil.interpolate(quad, sprite, emissiveSprite);
 			quad.sprite(emissiveSprite);
